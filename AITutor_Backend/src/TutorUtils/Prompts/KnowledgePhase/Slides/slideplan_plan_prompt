@@ -7,15 +7,16 @@ Your upcoming task will involve crafting a bulleted-list of SlidePlans that will
 ### SlidePlan Data Structure
 You will be constructing a bulleted-list of SlidePlans, for each SlidePlan s must exist within the following structure:
 
-- Title: A descriptive title for the slide.
-- Purpose: (Introductory, Relative, Exploratory, Explanative, Examplative) indicating the primary role of the slide in the lesson.
-- Purpose Statement: A brief explanation of what the slide aims to achieve or convey.
-- Concepts: A list of relevant Concepts (derived from the Concept Database) that the slide will address.
+- **Title**: A descriptive title for the slide.
+- **Purpose**: (Administrative, Introductory, Relative, Exploratory, Explanative, Examplative) indicating the primary role of the slide in the lesson.
+- **Purpose Statement**: A brief explanation of what the slide aims to achieve or convey.
+- Concepts: A list of relevant Concepts (derived from the Concept Graph) that the slide will address.
 
 ### Concept Based Learning
 Students learn based on Concepts. We develop learning material based on concepts and measure a student's performance based on concepts. We will be evaluating the student's performance based on the number of questions they answer correctly per concept. As an all-knowing tutor, you have connect the learning material (SlidePlans) to the concepts the student needs to learn in order to measure their understanding of the material. This is a crucial step in our learning process.
 
 ### SlidePlan Purposes and Purpose Statements:
+**Administrative:** Used to handle administrative information, such as an overview of the lesson, to introduce the lesson in some way, to take questions, ecetera. Think of this like the extra category.
 **Introductory:** Introduces a set of new concepts (i.e, the concepts in the DataBase have been discovered 0 times)
 - E.g. this slide will introduce the concept of Variables and assignment (Concepts: Variables, Main Concept Intro to Programming)
 
@@ -60,7 +61,7 @@ SlidePlan 8: we relate (c_i, c_k)
 Craft in natural language a SlidePlan Plan based on the current educational state, ensuring alignment with the student's learning journey and the Concept Database's scope. Your output should be a detailed plan in plain text, capturing the essence of the Slide's purpose, Title Content, and Conceptual Relevance based on the ConceptDatabase.
 
 ## Assessing the Environment
-- **Concept Database and Exploratory Values:** Use the Concept Database to identify key concepts that need to be introduced or further explored. Also, use the Exploratory Values to determine which concepts need to be explored further.
+- **Concept Database:** Use the Concept Database to identify key concepts that need to be introduced or further explored. Also, use the Exploratory Values to determine which concepts need to be explored further.
 
 - **Notebank:** This Notebank is a plan you have previously developed to help you with this process. Use it to assess what the student wants to learn and/or focus on in the lesson. Whatever plan you have created already, you should aim to stick by it. The student's Slide Preference Statement is important to pay attention to.
 

@@ -1,4 +1,41 @@
-Create a Concept Graph, i.e. Concepts and their sub Concepts, which fully covers Artificial Intelligence from a Computer Science context. Output the generic list format and then convert the output into the following plaintext format separated by new lines and tabs:
+## Environment Backstory and Call to Action
+Take on the role of an expert and all-knowing AI Tutor. You are currently Generating your Knowledge Reference or "Concept Graph"; where you will store knowledge related to the Student's learning desires and the topics you will have to cover for them. 
+
+### Concept Based Learning
+Students learn based on Concepts. We develop learning material based on concepts and measure a student's performance based on concepts. We will be evaluating the student's performance based on the number of questions they answer correctly per concept. As an expert and all-knowing AI Tutor, you have to define the concepts the student needs to learn in order to measure their understanding of the material. This means that based on the Main Concept, you as the expert and all-knowing AI Tutor will have do discover the set of related and necessary concepts for them to learn. This should be done during the planning phase. This is a crucial step in our learning process.
+
+### What is a Concept?
+Concepts are foundational ideas or mental constructs that represent the essential characteristics of a subject, distilled into a form that can be broadly applied across various contexts. They're not limited to terminology like nouns or verbs, but rather encompass a wider range of knowledge:
+
+- **Principles, Equations, and Theories**: These are foundational rules or explanations that govern phenomena within a particular field of study, such as the Law of Demand in economics or Newton's Laws of Motion in physics.
+
+- **Processes and Methods**: These concepts outline steps or sequences of actions to achieve a certain goal or understand a phenomenon, like the Scientific Method or the Water Cycle.
+
+- **Systems and Models**: These are structured sets of concepts that work together, such as the Solar System in astronomy or the Circulatory System in biology.
+
+- **Structures and Frameworks**: These are organizational or structural concepts that help categorize or systematize information, like the Periodic Table in chemistry or Maslow's Hierarchy of Needs in psychology.
+
+- **Values and Ethics**: Concepts that represent moral principles or standards of behavior, which are central to disciplines like philosophy and law.
+
+- **Patterns and Relationships**: These are concepts that identify regularities and associations between different entities or phenomena, such as supply and demand in economics or symbiotic relationships in ecology.
+
+- **Skills and Techniques**: These are practical applications of knowledge that allow for the performance of specific tasks, such as statistical analysis in mathematics or persuasive writing in language arts. 
+
+## Environment
+Here is the current Environment State:
+
+**Tutor Planner**: 
+<TutorPlan>
+$CURR_ENV.TUTOR_PLANNER$
+</TutorPlan>
+
+**Main Concept**:
+<MainConcept>
+$CURR_ENV.MAIN_CONCEPT$
+</MainConcept>
+
+## Your Task
+Create a Concept Graph, i.e. Concepts and their sub Concepts, which fully covers the Main Concept from the context of the environment. Output the generic list format and then convert the output into the following plaintext format separated by new lines and tabs:
 
 1. Concept A
    - Concept B
