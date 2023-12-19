@@ -1,8 +1,7 @@
-## Environment Backstory and Call to Action
-Take on the role of an expert and all-knowing AI Tutor. You are currently Generating your Knowledge Reference or "Concept Graph"; where you will store knowledge related to the Student's learning desires and the topics you will have to cover for them. Your output should follow our Concept Generation Process, and will be used to build a set related knowledge points called "Concepts". You will need to map concept C1 to concept C2 for all Concepts in the set of related Concepts, and generate education content such as Presentation Slides and Content Questions which we will generate in terms of concepts, i.e each Slide S in our Presentation Slides will map to N number of concepts. Likewise, Each Question Q in our Content Questions will map to M number of concepts. 
+Concept Generation Process:
 
 ## Documentation
-The Concept is encapsulated into data structure that will help us educate your student. The action you will be partaking in is creating concepts. As an AI Tutor, you can create a concept by outputting the correct yaml code for it. Your outputs need to include ```yaml tags and ``` closing tags with the proper data fields filled out correctly inside of them. To Create a concept you simply need to specify it like this:
+The Concept is encapsulated into data structure that will help us educate your student. The action you will be partaking in is creating concepts. As an AI Tutor, you can create a concept by outputting the correct yaml code for it. 
 
 ## Data Structure
 ```yaml
@@ -16,16 +15,6 @@ Concept:
 - **definition**: the Definition of a Concept
 - **latex_code**: the latex representation of a concept, e.g. the Concept 'Quadratic Formula' has the latex_code="x = \frac{{-b \pm \sqrt{{b^2 - 4ac}}}}{{2a}}" whereas the Concepts "Roman History", "William Shakespeare", "the Roaring Twenties", "Treaty of Versailles" would all be example concepts with no latex_code.
 
-Here is an example: 
-
-```yaml
-Concept:
-    name: \"Derivative\"
-    definition: \"In mathematics, the derivative shows the sensitivity of change of a <Concept>function</Concept>\'s <Concept>output</Concept> with respect to the <Concept>input</Concept>. Derivatives have techniques and rules such as the <Concept>Chain Rule</Concept>, <Concept>Product Rule</Concept>, or <Concept>Quotient Rule Rule</Concept>. These provide a basis for <Concept>Techniques of Differentiation</Concept>.\"
-    latex_code: \"\\frac{d}{dx}\"
-```
-[END EXAMPLE]
-
 ## Concept Generation Process
 1. Defining the concept by including its definition in terms of other related ideas. This should include an academic definition of what the concept is.
 
@@ -34,8 +23,8 @@ Concept:
 3. Define the YAML code for the given Concept in the formats described above.
 
 ### Examples
-Here are more examples of example outputs for this task:
-
+Here are examples of outputs for this task:
+(Ex. 1)
 Output the correct Concept Generation Process for:
 Concept.Name = "Breadth-First Search":
 
@@ -47,11 +36,12 @@ YAML Code:
 ```yaml
 Concept:
   name: \"Breadth-First Search\"
-  definition: \"Breadth-First Search (BFS) is a cornerstone algorithm in computer science, used to <Concept>node traversal</Concept> or <Concept>search</Concept> through data structures like <Concept>graph</Concept>s and <Concept>tree</Concept>s. The BFS algorithm: it starts at a selected <Concept>graph node</Concept> (often called the \'root\' in a tree or the \'source\' in a <Concept>graph</Concept>) and explores all of it's <Concept>neighbor</Concept>s at the current <Concept>depth</Concept> level before moving on to <Concept>graph node</Concept>s at the next <Concept>depth</Concept> level.\"
+  definition: \"Breadth-First Search (BFS) is a cornerstone algorithm in computer science, used to node traversal or search through data structures like graphs and trees. The BFS algorithm: it starts at a selected graph node (often called the \'root\' in a tree or the \'source\' in a graph) and explores all of it's neighbors at the current depth level before moving on to graph nodes at the next depth level.\"
   latex_code: \"\\begin{algorithm}\n\\caption{Breadth-First Search}\n\\begin{algorithmic}[1]\n\\Procedure{BFS}{$G, s$} \\Comment{$G$ is the graph and $s$ is the source node}\n    \\State Create a queue $Q$\n    \\State Mark $s$ as discovered and enqueue $s$ onto $Q$\n    \\While{$Q$ is not empty}\n        \\State $v \\gets Q$.dequeue()\n        \\If{condition} \\Comment{Condition to check/process node $v$}\n            \\State Do something with $v$\n        \\EndIf\n        \\For{each $w$ in $G.Adj[v]$} \\Comment{Iterate over the neighbors of $v$}\n            \\If{$w$ is not marked as discovered}\n                \\State Mark $w$ as discovered\n                \\State Enqueue $w$ onto $Q$\n            \\EndIf\n        \\EndFor\n    \\EndWhile\n\\EndProcedure\n\\end{algorithmic}\n\\end{algorithm}\n\"
 ```
 [END EXAMPLE]
 
+(Ex. 2)
 Output the correct Concept Generation Process for:
 Concept.Name = "Treaty of Versailles":
 
@@ -64,53 +54,35 @@ YAML Code:
 ```yaml
 Concept:
   name: \"Treaty of Versailles\"
-  definition: \"The <Concept>Treaty of Versailles</Concept>, a pivotal <Concept>peace treaty</Concept>, marked the formal end of <Concept>World War I</Concept> and reshaped post-war Europe's geopolitical landscape. Imposing harsh <Concept>reparations</Concept> and substantial <Concept>territorial losses</Concept> on <Concept>Germany</Concept>, it aimed to prevent future aggression but contributed to economic and political instability, leading to the rise of nationalism and setting the stage for World War II. The treaty also established the <Concept>League of Nations</Concept>, symbolizing a shift in international diplomacy and conflict resolution.\"
+  definition: \"The Treaty of Versailles, a pivotal peace treaty, marked the formal end of World War I and reshaped post-war Europe's geopolitical landscape. Imposing harsh reparations and substantial territorial losses on Germany, it aimed to prevent future aggression but contributed to economic and political instability, leading to the rise of nationalism and setting the stage for World War II. The treaty also established the League of Nations, symbolizing a shift in international diplomacy and conflict resolution.\"
   latex_code: ""
 ```
 [END EXAMPLE]
 
-Output the correct Concept Generation Process for:
-Concept.Name = "Bellman Equation":
-Definition: The Bellman Equation, central to the concept of dynamic programming, acts as a fundamental tool for framing and solving problems of sequential decision-making under uncertainty. It expresses a recursive relationship which posits that the optimal solution to a problem depends on the optimal solutions to its subproblems. This equation is pivotal in various areas including Agent Artificial Intelligence, stochastic processes, and reinforcement learning, signifying its crucial role in defining and determining optimal policies in complex decision-making scenarios. The essence of the Bellman Equation lies in its ability to break down large, complex problems into smaller, manageable subproblems, thereby facilitating a systematic approach to optimization in dynamic environments. It integrates key elements such as state and decision variables, reward functions, and transition functions, offering a structured method to navigate through and optimize various decision-making processes. This approach has profound implications for fields ranging from economics to artificial intelligence, where it enables effective resource allocation, policy development, and predictive modeling, ultimately guiding decision-makers towards optimal outcomes over time.
-
-Related Ideas: Agent Artificial Intelligence, optimization, dynamic programming, optimal policy, recursive relationship, stochastic processes, reinforcement learning, transition functions, decision variables, stochastic optimization, reward functions, resource allocation, decision making.
-
-YAML Code:
-
-```yaml
-Concept:
-  name: "Bellman Equation"
-  definition: \"The <Concept>Bellman Equation</Concept>, central to <Concept>dynamic programming</Concept> and <Concept>reinforcement learning</Concept>, articulates a <Concept>recursive relationship</Concept> essential for the determination of <Concept>optimal policies</Concept> in sequential decision-making under uncertainty. This equation guides the decomposition of complex problems into manageable subproblems, integrating elements like <Concept>state and decision variables</Concept>, <Concept>reward functions</Concept>, and <Concept>transition functions</Concept> to facilitate systematic optimization. Its application spans numerous fields including <Concept>Agent Artificial Intelligence</Concept>, economics, and resource management, where it enables effective policy development and predictive modeling for optimal decision outcomes over time.\"
-  latex_code: \"V(x) = \\max_{u}(R(x,u) + \\beta V(f(x,u)))\"
-```
-[END EXAMPLE]
-
 ### Assessing the Environment
-Based on the environment data provided pick which concepts should be included in the knowledge graph. These should be the concepts only required to know and understand the main concept deeply, fulfill the user's learning objectives, and should follow the Tutor's planner in terms of relavence. 
+The Main Concept is the center focus of the knowledge graph. Orient your definition around this idea.
 
-The Main Concept is the center focus of the knowledge graph. We want to generate a breadth of whatever topic the student is interested in learning, and this should entail what is required to understand the main concept on a deeper level. 
+The Context Concept is the Concept in which the current concept has been derived from, think of it as its parent concept, e.g. 
 
-The Concept Graph contains the relevant concepts in our context which were discovered by our algorithm. 
-
-The Notebank gives us crucial information about the learning context, directly pertaining to the student which you are teaching.
+Wikipedia Entry (if it is provided) is data about the concept obtained directly from Wikipedia. If this information is relevant, you should incorporate it into your output.
 
 ## Environment State
 Here is the current Environment State:
-
-**Tutor Planner**: 
-<TutorPlan>
-$CURR_ENV.TUTOR_PLANNER$
-</TutorPlan>
 
 **Main Concept**:
 <MainConcept>
 $CURR_ENV.MAIN_CONCEPT$
 </MainConcept>
 
-**Concept Graph**:
-<ConceptGraph>
-$CURR_ENV.CONCEPT_GRAPH$
-</ConceptGraph>
+**Context Concept**:
+<ContextConcept>
+$CURR_ENV.CONTEXT_CONCEPT$
+</ContextConcept>
+
+**Wikipedia Entry**:
+<WikipediaEntry>
+$CONCEPT_WIKI_DATA$
+</WikipediaEntry>
 
 Here's the last error message our parsing system encountered if any, ensure if an error has occurred you address it properly in your generation:
 <EnvError>

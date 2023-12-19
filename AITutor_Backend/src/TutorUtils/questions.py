@@ -35,7 +35,7 @@ class QuestionSuite(JSONSerializable, SQLSerializable):
             with open(question_plan_to_question_file, "r") as f:
                 self.__plan_to_question_prompt = f.read()
                 
-        def request_output_from_llm(self, prompt, model: str, max_length = 4000):
+        def request_output_from_llm(self, prompt, model: str, max_length = 4000, temp=0.5):
             """Requests the Concept information from an LLM.
 
             Args:
@@ -51,10 +51,14 @@ class QuestionSuite(JSONSerializable, SQLSerializable):
                     messages=[
                         {
                             "role": "system",
+                            "content": "Act as an intelligent AI Tutor.",
+                        },
+                        {
+                            "role": "user",
                             "content": prompt,
                         },
                     ],
-                    temperature=1,
+                    temperature=temp,
                     max_tokens=max_length,
                     top_p=1,
                     frequency_penalty=0,

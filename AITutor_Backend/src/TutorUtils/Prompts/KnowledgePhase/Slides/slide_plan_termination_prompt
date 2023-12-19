@@ -75,7 +75,7 @@ Review the existing SlidePlans, examining their titles, purposes, purpose statem
 
 - **Current SlidePlan Set**:
 <SlidePlanSet>
-$ENV.SLIDE_PLAN_SET$
+$ENV.LESSON_PLAN$
 </SlidePlanSet>
 
 - **Concept Database and Exploratory Values:**

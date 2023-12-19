@@ -35,77 +35,44 @@ Tutor should document their responses and preferences in the Notebank for future
 """
 
 # Defining the concepts in the SubTree
-cd = ConceptDatabase("Regular Expression", "", generation=False)
-regular_expression = Concept.create_from_concept_string_add_to_database(
-    "Regular Expression",
-    "A sequence of characters that form a search pattern, often used for string matching and manipulation.",
-    "", cd
-)
-
-text_normalization = Concept.create_from_concept_string_add_to_database(
-    "Text normalization",
-    "Process of transforming text into a more consistent format, often used in conjunction with <Concept>Regular Expression</Concept>.",
-    "", cd
-)
-
-expression_patterns = Concept.create_from_concept_string_add_to_database(
-    "Expression Patterns",
-    "Specific patterns used within a <Concept>Regular Expression</Concept>, including Concatenation, Disjunction, etc.",    "", cd)
-
-# Sub-concepts of Expression Patterns
-concatenation = Concept.create_from_concept_string_add_to_database(
-    "Concatenation",
-    "A type of <Concept>Expression Pattern</Concept> where two strings are joined end-to-end.",
-    "", cd
-)
-
-disjunction = Concept.create_from_concept_string_add_to_database(
-    "Disjunction",
-    "A type of <Concept>Expression Pattern</Concept> representing a choice between alternatives.",
-    "", cd
-)
-
-range_c = Concept.create_from_concept_string_add_to_database(
-    "Range",
-    "A <Concept>Expression Pattern</Concept> that specifies a range of characters to match.",
-    "", cd
-)
-
-kleene = Concept.create_from_concept_string_add_to_database(
-    "Kleene",
-    "A <Concept>Expression Pattern</Concept> indicating zero or more occurrences of the previous element.",
-    "", cd
-)
-
-anchors = Concept.create_from_concept_string_add_to_database(
-    "Anchors",
-    "Special <Concept>Expression Patterns</Concept> that assert a position within the text.",
-    "", cd
-)
-
-counters = Concept.create_from_concept_string_add_to_database(
-    "Counters",
-    "Quantifiers in a <Concept>Regular Expression</Concept> that specify how many times a component should occur.",
-    "", cd
-)
-
-precedence = Concept.create_from_concept_string_add_to_database(
-    "Precedence",
-    "The order in which operations in a <Concept>Regular Expression</Concept> are carried out.",
-    "", cd
-)
-
-substitution = Concept.create_from_concept_string_add_to_database(
-    "Substitution",
-    "Replacing text in a string that matches a <Concept>Regular Expression</Concept>.",
-    "", cd
-)
-
-lookahead_assertions = Concept.create_from_concept_string_add_to_database(
-    "Lookahead Assertions",
-    "Conditional <Concept>Expression Patterns</Concept> in a <Concept>Regular Expression</Concept> that look ahead in the text.",
-    "", cd
-)
+concept_data = [
+    ("Regular Expression", None, 
+     "A sequence of characters that form a search pattern, often used for string matching and manipulation.",
+     "", None),
+    ("Text normalization", "Regular Expression", 
+     "Process of transforming text into a more consistent format, often used in conjunction with Regular Expression.",
+     "", ""),
+    ("Expression Patterns", "Regular Expression", 
+     "Specific patterns used within a Regular Expression, including Concatenation, Disjunction, etc.", 
+     "", ""),
+    ("Concatenation", "Expression Patterns", 
+     "A type of Expression Pattern where two strings are joined end-to-end.", 
+     "", ""),
+    ("Disjunction", "Expression Patterns", 
+     "A type of Expression Pattern representing a choice between alternatives.", 
+     "", ""),
+    ("Range", "Expression Patterns", 
+     "A Expression Pattern that specifies a range of characters to match.", 
+     "", ""),
+    ("Kleene", "Expression Patterns", 
+     "A Expression Pattern indicating zero or more occurrences of the previous element.", 
+     "", ""),
+    ("Anchors", "Expression Patterns", 
+     "Special Expression Patterns that assert a position within the text.", 
+     "", ""),
+    ("Counters", "Regular Expression", 
+     "Quantifiers in a Regular Expression that specify how many times a component should occur.", 
+     "", ""),
+    ("Precedence", "Regular Expression", 
+     "The order in which operations in a Regular Expression are carried out.", 
+     "", ""),
+    ("Substitution", "Regular Expression", 
+     "Replacing text in a string that matches a Regular Expression.", 
+     "", ""),
+    ("Lookahead Assertions", "Regular Expression", 
+     "Conditional Expression Patterns in a Regular Expression that look ahead in the text.", 
+     "", "")
+]
 
 regex_notes = """User expresses interest in learning about regular expressions.
 Main Concept: Regular Expressions
@@ -128,16 +95,12 @@ Student Interest Statement: I like bird watching, I have a nest in my backyard w
 Student Slides Statement: I learn by example, the more examples the better.
 Student Questions Statement: I would like to tackle programming questions, text entry questions, and multiple choice questions.
 """
-
-
-# Adding references (for demonstration, assuming this functionality is part of the Concept class)
-regular_expression.refs.extend([text_normalization, expression_patterns])
-expression_patterns.refs.extend([concatenation, disjunction, range_c, kleene, anchors, counters, precedence, substitution, lookahead_assertions])
+cd = ConceptDatabase.from_sql("Regular Expressions", regex_notes, concept_data)
 
 class QuestionSuiteTests(unittest.TestCase):
     def setUp(self):
         self.notebank = NoteBank()
-        self.concept_db = ConceptDatabase("Test Concept 1", generation=False)
+        self.concept_db = ConceptDatabase("Test Concept 1", )
         self.concept_db.Concepts.append(Concept("Test Concept 1", ""))
         self.concept_db.Concepts.append(Concept("Test Concept 2", ""))
         self.concept_db.Concepts.append(Concept("Test Concept 3", ""))
@@ -181,7 +144,7 @@ class QuestionSuiteTests(unittest.TestCase):
 
 class QuestionTests(unittest.TestCase):
     def setUp(self):
-        self.concept_db = ConceptDatabase("Test Concept 1", generation=False)
+        self.concept_db = ConceptDatabase("Test Concept 1", )
         self.concept = Concept("Test Concept 1", "")
         self.concept_db.Concepts.append(self.concept)
         self.question_data = {

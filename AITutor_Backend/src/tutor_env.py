@@ -85,7 +85,7 @@ class TutorEnv(SQLSerializable,):
                         }
                     ],
                     # response_format={"type": "json_object"},
-                    temperature=0.8,
+                    temperature=0.5,
                     max_tokens=256,
                     top_p=0.95,
                     frequency_penalty=0,
@@ -115,7 +115,7 @@ class TutorEnv(SQLSerializable,):
                         }
                     ],
                     # response_format={"type": "json_object"},
-                    temperature=1.0,
+                    temperature=0.5,
                     max_tokens=1256,
                     top_p=0.95,
                     frequency_penalty=0,
@@ -149,7 +149,7 @@ class TutorEnv(SQLSerializable,):
                         }
                     ],
                     # response_format={"type": "json_object"},
-                    temperature=1.0,
+                    temperature=0.5,
                     max_tokens=8000,
                     top_p=0.95,
                     frequency_penalty=0,
@@ -209,7 +209,9 @@ class TutorEnv(SQLSerializable,):
                     self.env.notebank.clear()
                     [self.env.notebank.add_note(note) for note in notes] # iterate through notes and add to Notebank
                     # Generate Concept Database:
-                    self.env.concept_database = ConceptDatabase(main_concept, self.env.notebank.env_string(), not DEBUG_GENERATION_DATA)
+                    self.env.concept_database = ConceptDatabase(main_concept, self.env.notebank.env_string(),)
+                    self.env.concept_database.generate_concept_graph()
+                    self.env.concept_database.generate_concepts()
                     # # Generate Slide Planner:
                     self.env.slide_planner = SlidePlanner(self.env.notebank, self.env.concept_database)
                     # # Generate Question Suite:

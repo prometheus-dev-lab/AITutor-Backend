@@ -250,7 +250,7 @@ class SlidePlan(JSONSerializable):
 
 class SlidePlanner(JSONSerializable, SQLSerializable):
     class SlideLLMAPI:
-        SLIDE_PLAN_SET_DELIMITER = "$ENV.SLIDE_PLAN_SET$" #Environment for the notebankd
+        LESSON_PLAN_DELIMITER = "$ENV.LESSON_PLAN$" #Environment for the notebankd
         EXPLORED_CONCEPTS_DELIMITER = "$ENV.CONCEPTS_EXPLORED_VALUES$" #Environment for the chat history
         NOTEBANK_STATE_DELIMITER = "$ENV.NOTEBANK_STATE$"
         CURR_ENV_CONEPT_LIST = "$ENV.CONCEPT_LIST$"
@@ -269,7 +269,7 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
             with open(slide_description_prompt_file, "r") as f:
                 self.__slide_description_prompt = f.read()
                 
-        def request_output_from_llm(self, prompt, model: str, max_length = 2500):
+        def request_output_from_llm(self, prompt, model: str, max_length = 2500, temp=0.5):
             """Requests the Concept information from an LLM.
 
             Args:
@@ -285,10 +285,14 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
                     messages=[
                         {
                             "role": "system",
+                            "content": "Act as an intelligent AI Tutor.",
+                        },
+                        {
+                            "role": "user",
                             "content": prompt,
                         },
                     ],
-                    temperature=1,
+                    temperature=temp,
                     max_tokens=max_length,
                     top_p=1,
                     frequency_penalty=0,
@@ -299,7 +303,7 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
             else:
                 return self.client.get_output(prompt, " ")
             
-        def conversational_JSON_request(self, system, assistant, user, model: str, max_length = 4000):
+        def conversational_JSON_request(self, system, assistant, user, model: str, max_length = 4000, temp=0.5):
             """Requests the Concept information from an LLM.
 
             Args:
@@ -327,7 +331,7 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
                         },
                         
                     ],
-                    temperature=1,
+                    temperature=temp,
                     max_tokens=max_length,
                     top_p=1,
                     frequency_penalty=0,
@@ -348,11 +352,11 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
             return prompt_string
         
         def prompt_plan_slideplan(self, side_plan_set, explored_concepts, notebank_state):
-            env_state = {SlidePlanner.SlideLLMAPI.SLIDE_PLAN_SET_DELIMITER: side_plan_set, SlidePlanner.SlideLLMAPI.EXPLORED_CONCEPTS_DELIMITER: explored_concepts, SlidePlanner.SlideLLMAPI.NOTEBANK_STATE_DELIMITER:notebank_state}
+            env_state = {SlidePlanner.SlideLLMAPI.LESSON_PLAN_DELIMITER: side_plan_set, SlidePlanner.SlideLLMAPI.EXPLORED_CONCEPTS_DELIMITER: explored_concepts, SlidePlanner.SlideLLMAPI.NOTEBANK_STATE_DELIMITER:notebank_state}
             return self._load_prompt(self.__slideplan_plan_prompt, env_state)
         
         def prompt_terminate_slideplan(self, side_plan_set, explored_concepts, notebank_state):
-            env_state = {SlidePlanner.SlideLLMAPI.SLIDE_PLAN_SET_DELIMITER: side_plan_set, SlidePlanner.SlideLLMAPI.EXPLORED_CONCEPTS_DELIMITER: explored_concepts, SlidePlanner.SlideLLMAPI.NOTEBANK_STATE_DELIMITER:notebank_state}
+            env_state = {SlidePlanner.SlideLLMAPI.LESSON_PLAN_DELIMITER: side_plan_set, SlidePlanner.SlideLLMAPI.EXPLORED_CONCEPTS_DELIMITER: explored_concepts, SlidePlanner.SlideLLMAPI.NOTEBANK_STATE_DELIMITER:notebank_state}
             return self._load_prompt(self.__sideplan_terminate_prompt, env_state)
         
         def prompt_sLideplan_to_obj(self, slide_plan):

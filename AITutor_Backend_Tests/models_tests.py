@@ -22,10 +22,13 @@ class DatabaseManagerTestCase(TestCase):
         self.db_manager.tutor_env.chat_history.respond("test user output")
         
         # Add concept database from other test:
-        cd = ConceptDatabase("Testing", generation=False)
-        c1 = Concept("Concept 1", "")
+        cd = ConceptDatabase("Testing", )
+        c1 = Concept("Concept 1", None)
         cd.Concepts.append(c1)
-        c2 = Concept.create_from_concept_string_add_to_database("Concept 2", "Concept string mapping it to <Concept>Concept 1</Concept> which is super important.", "", cd)
+        c2 = Concept("Concept 2", c1)
+        c2.set_definition("Concept string mapping it to which is super important.")
+        cd.Concepts.append(c2)
+        c1.refs.append(c2)
         
         # Add slide and slideplanner
         slide = Slide("Test Title", "Test Description", "Test Presentation", "Test Content", [], Purpose.Explanative, "Test Purpose Statement", [c1, c2])
@@ -55,8 +58,14 @@ class DatabaseManagerTestCase(TestCase):
         
         # Add concept database from other test:
         assert self.db_manager.tutor_env.concept_database is not None, "Error reloading the conceptdatabase model"
-        c3 = Concept.create_from_concept_string_add_to_database("Concept 3", "Concept string mapping it to <Concept>Concept 2</Concept> which is super important.", "", self.db_manager.tutor_env.concept_database)
-
+        c1 = self.db_manager.tutor_env.concept_database.get_concept("Concept 1")
+        c2 = self.db_manager.tutor_env.concept_database.get_concept("Concept 2")
+        assert c2, "Cannot find concept created, error saving and reloading concepts."
+        c3 = Concept("Concept 3", c2)
+        c3.set_definition("Concept string mapping it to Concept 2 which is super important.")
+        self.db_manager.tutor_env.concept_database.Concepts.append(c3)
+        c2.refs.append(c3)
+        c1.refs.append(c3)
         # Modify slide planner and add more slides
         slide_planner = self.db_manager.tutor_env.slide_planner
         self.assertIsNotNone(slide_planner, "Error retrieving SlidePlanner from TutorEnv")
@@ -91,10 +100,13 @@ class DatabaseManagerTestCase(TestCase):
         updated_concept_database = ConceptDatabaseModel.objects.get(id=self.tutor_env_model.concept_database.id)
         self.assertEqual(updated_concept_database.main_concept, "Testing", "Error while saving Concept Database.")
         
+        
+        concept_1 = ConceptModel.objects.get(name="Concept 1", concept_database=updated_concept_database)
         concept_2 = ConceptModel.objects.get(name="Concept 2", concept_database=updated_concept_database)
         self.assertEqual(concept_2.name, "Concept 2", "Error while saving a Concept Model")
         
-        self.assertTrue("<Concept>Concept 1</Concept>" in concept_2.definition, "Error while parsing the concept's definition")
+        self.assertTrue("Concept 1" in concept_2.parent, "Error while parsing the concept's definition")
+        self.assertTrue("Concept 2" in concept_1.refs, "Error while parsing the concept's definition")
         
         self.assertEqual(self.tutor_env_model.curr_state, 0, "Error while saving the TutorEnvModel.")
         updated_sp = SlidePlannerModel.objects.get(id=self.tutor_env_model.slide_planner.id)
@@ -131,9 +143,13 @@ class DatabaseManagerTestCase(TestCase):
         updated_concept_database = ConceptDatabaseModel.objects.get(id=self.tutor_env_model.concept_database.id)
         self.assertEqual(updated_concept_database.main_concept, "Testing", "Error while saving Concept Database.")
         
+        concept_1 = ConceptModel.objects.get(name="Concept 1", concept_database=updated_concept_database)
+        concept_2 = ConceptModel.objects.get(name="Concept 2", concept_database=updated_concept_database)
         concept_3 = ConceptModel.objects.get(name="Concept 3", concept_database=updated_concept_database)
         self.assertEqual(concept_3.name, "Concept 3", "Error while saving a Concept Model")
-        self.assertTrue("<Concept>Concept 2</Concept>" in concept_3.definition, "Error while parsing the concept's definition")
+        self.assertTrue("Concept 2" in concept_3.parent, "Error while parsing the concept's definition")
+        self.assertTrue("Concept 3" in concept_2.refs, "Error while parsing the concept's definition")
+        self.assertTrue("Concept 3" in concept_1.refs, "Error while parsing the concept's definition")
 
         updated_sp = SlidePlannerModel.objects.get(id=self.tutor_env_model.slide_planner.id)
         self.assertIsNotNone(updated_sp, "SlidePlanner was not reloaded correctly.")

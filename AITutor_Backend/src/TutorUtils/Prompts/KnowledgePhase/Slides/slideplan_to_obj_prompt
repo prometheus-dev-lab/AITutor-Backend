@@ -1,7 +1,9 @@
 Your task is to translate the Natural Language SlidePlan into a JSON Object. Ensure your output is in JSON format and is as such and are based on the following Data Structures:
 
 class Purpose(IntEnum):
-    Introductory = 0
+    Introductory = 0Your task is to translate the Natural Language SlidePlan into a JSON Object. Ensure your output is in JSON format and is as such and are based on the following Data Structures:
+
+class Purpose(IntEnum):
     Relative = 1
     Exploratory = 2
     Explanative = 3

@@ -10,7 +10,7 @@ class TutorEnvTests(unittest.TestCase):
         self.tutor_env = TutorEnv()
 
     def test_populate_data_from_file(self):
-        self.tutor_env.concept_database = ConceptDatabase("Graph Data Structure", self.tutor_env.notebank.env_string(), False)
+        self.tutor_env.concept_database = ConceptDatabase("Graph Data Structure", self.tutor_env.notebank.env_string(),)
         # # Generate Slide Planner:
         self.tutor_env.slide_planner = SlidePlanner(self.tutor_env.notebank, self.tutor_env.concept_database)
         # # Generate Question Suite:

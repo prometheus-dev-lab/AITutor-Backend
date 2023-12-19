@@ -13,8 +13,10 @@ class ConceptDatabaseModel(models.Model):
 class ConceptModel(models.Model):
     concept_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
+    parent = models.CharField(max_length=200, null=True)
     definition = models.TextField()
     latex = models.TextField()
+    refs = models.TextField(null=True)
     concept_database = models.ManyToManyField(ConceptDatabaseModel, related_name='concepts')
 
 class QuestionSuiteModel(models.Model):
@@ -115,21 +117,10 @@ class DatabaseManager:
             
             # Load the concepts associated with the ConceptDatabase:
             for concept in self.concept_database_model.concepts.all():
-                concept_data.append([concept.name, concept.definition, concept.latex])
+                concept_data.append([concept.name, concept.parent, concept.definition, concept.latex, concept.refs])
 
             # Recreate the ConceptDatabase object from the loaded data:
-            self.concept_database = ConceptDatabase.from_sql(self.main_concept, self.tutor_env.notebank.env_string(),concept_data)
-            # class SlideModel(models.Model):
-    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    # title = models.TextField()
-    # description = models.TextField()
-    # presentation = models.TextField()
-    # content = models.TextField()
-    # ltx_codes =  models.TextField()
-    # purpose = models.IntegerField()
-    # purpose_statement = models.TextField()
-    # concepts = models.TextField()
-    # slide_planner = models.ManyToManyField(QuestionSuiteModel, related_name='slides')   
+            self.concept_database = ConceptDatabase.from_sql(self.main_concept, self.tutor_env.notebank.env_string(), concept_data)
         # Load the SlidePlanner associated with the TutorEnv:
         self.slide_planner_model = self.tutor_env_model.slide_planner
         if self.slide_planner_model:
@@ -160,8 +151,6 @@ class DatabaseManager:
         if self.slide_planner_model:
             self.tutor_env.slide_planner = self.slide_planner
 
-        
-    
     def process_tutor_env(self, user_data):
         # Perform processing:
         system_data, current_state = self.tutor_env.step(user_data)
@@ -194,8 +183,10 @@ class DatabaseManager:
                     concept_model = ConceptModel.objects.create(
                         concept_id=concept_id,
                         name=concept_data[0],
-                        definition=concept_data[1],
-                        latex=concept_data[2],
+                        parent=concept_data[1],
+                        definition=concept_data[2],
+                        latex=concept_data[3],
+                        refs=concept_data[4],
                     )
                     concept_models += [concept_model]
                 # Link the concepts to the ConceptDatabaseModel:
@@ -215,15 +206,19 @@ class DatabaseManager:
                         concept_database=self.concept_database_model
                     )
                     # Update with any new data since you've found an existing model
-                    concept_model.definition = concept_data[1]
-                    concept_model.latex = concept_data[2]
+                    concept_model.parent = concept_data[1]
+                    concept_model.definition = concept_data[2]
+                    concept_model.latex = concept_data[3]
+                    concept_model.refs = concept_data[4]
                     concept_model.save()
                 except ConceptModel.DoesNotExist:
                     # If it does not exist, create it and add it to the current ConceptDatabaseModel:
                     concept_model = ConceptModel.objects.create(
                         name=concept_data[0],
-                        definition=concept_data[1],
-                        latex=concept_data[2]
+                        parent=concept_data[1],
+                        definition=concept_data[2],
+                        latex=concept_data[3],
+                        refs=concept_data[4],
                     )
                 concept_models.append(concept_model)
             # Update DB Relationships for cdm:
@@ -231,7 +226,7 @@ class DatabaseManager:
             self.tutor_env_model.concept_database = self.concept_database_model
             self.tutor_env_model.save()
 
-            # Save the main concept
+            # Save the main concept:
             self.concept_database_model.main_concept = main_concept
             self.concept_database_model.save()
         # Save the Slide Planner:

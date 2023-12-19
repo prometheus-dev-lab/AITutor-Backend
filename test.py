@@ -11,7 +11,6 @@ from AITutor_Backend_Tests.TutorUtils import prompts_tests
 from AITutor_Backend_Tests.TutorUtils import concepts_tests
 from AITutor_Backend_Tests.TutorUtils import chat_history_tests
 from AITutor_Backend_Tests.TutorUtils import questions_tests
-from AITutor_Backend_Tests.TutorUtils import questions_tests
 from AITutor_Backend_Tests.TutorUtils import slides_tests
 from AITutor_Backend_Tests import models_tests
 from AITutor_Backend_Tests import tutor_env_tests
