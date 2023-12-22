@@ -20,3 +20,5 @@ Where you construct a list of chapters like such:
 
 Chapters:
 $CHAPTERS$
+
+Ensure your output is in valid JSON Format.

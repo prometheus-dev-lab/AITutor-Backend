@@ -4,7 +4,7 @@ import json
 
 GENERATE_DATA = bool(os.environ.get("GENERATE_TESTS", 0))
 
-from AITutor_Backend.src.TutorUtils.questions import QuestionSuite, Question
+from AITutor_Backend.src.TutorUtils.Modules.questions import QuestionSuite, Question
 from AITutor_Backend.src.TutorUtils.concepts import ConceptDatabase, Concept
 from AITutor_Backend.src.TutorUtils.notebank import NoteBank
 agent_ai_notes = """User expresses interest in learning about agent AI.

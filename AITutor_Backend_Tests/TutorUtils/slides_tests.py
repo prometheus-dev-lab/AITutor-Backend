@@ -5,7 +5,7 @@ import pickle as pkl
 
 GENERATE_DATA = bool(os.environ.get("GENERATE_TESTS", 0))
 
-from AITutor_Backend.src.TutorUtils.slides import SlidePlan, Slide, SlidePlanner, Purpose, Concept, ConceptDatabase
+from AITutor_Backend.src.TutorUtils.Modules.slides import SlidePlan, Slide, SlidePlanner, Purpose, Concept, ConceptDatabase
 from AITutor_Backend.src.TutorUtils.notebank import NoteBank
 
 agent_ai_notes = """User expresses interest in learning about agent AI.

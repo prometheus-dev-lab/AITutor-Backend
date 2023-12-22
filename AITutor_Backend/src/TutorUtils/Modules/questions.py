@@ -9,11 +9,14 @@ from AITutor_Backend.src.BackendUtils.replicate_api import ReplicateAPI
 from AITutor_Backend.src.BackendUtils.code_executor import CodeExecutor
 from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
 from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
+from AITutor_Backend.src.BackendUtils.env_serialize import EnvSerializable
 
+
+# TODO: fIX INSTRUCTIONS PARAMETER
 USE_OPENAI = True
 DEBUG = bool(os.environ.get("DEBUG", 0))
 
-class QuestionSuite(JSONSerializable, SQLSerializable):
+class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable):
     ALLOWED_LIBS = [
         ["numpy", "math", "sympy", ], # Math
         ["numpy", "math", "sympy", "collections", "itertools", "re", "heapq", "functools", "string", "torch", "nltk", "PIL", "cv2", "json", "enum", "typing",], # Python Programming
@@ -179,7 +182,7 @@ class Question(JSONSerializable, SQLSerializable):
         CODE_ENTRY=3 # Requires Code Executor
     MAP_SUBJECT_2_STR = {0: "Math (0)", 1: "Code (1)" , 2: "Literature (2)", 3: "Conceptual (3)"}
     MAP_TYPE_2_STR = {0: "TEXT_ENTRY (0)",1: "MULTIPLE_CHOICE (1)", 2:"CALCULATION_ENTRY (2)", 3:"CODE_ENTRY (3)"}
-    def __init__(self, q_subject: 'Question.Subject', q_type: 'Question.Type', question_data:dict, concepts):
+    def __init__(self, q_subject: 'Question.Subject', q_type: 'Question.Type', question_instructins:str, question_data:dict, concepts):
          """
             Defined Data Fields
             
@@ -214,6 +217,7 @@ class Question(JSONSerializable, SQLSerializable):
          """
          self.subject = q_subject
          self.type = q_type
+         self.instructions = question_instructins
          self.data = question_data
          self.concepts = [c for c in concepts if c is not None]
          self.student_response = None # Initialize to None
@@ -222,6 +226,24 @@ class Question(JSONSerializable, SQLSerializable):
         return f"Question(data: {self.data}) <{self.__hash__()}>"
 
     @staticmethod
+    def create_question_from_JSON(llm_output, ConceptDatabase) -> 'Question':
+        """
+
+        """
+        regex_match = Question.__QUESTION_REGEX.findall(llm_output)
+        # Try to get json format or attempt to use output as json
+        if regex_match:
+            regex_match = regex_match[0].replace("```json", "").replace("```", "").strip()
+        question_data = regex_match if regex_match else llm_output
+        try:
+            question_data = json.loads(question_data)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Error parsing JSON on output: {llm_output},  error: {str(e)}")
+
+        q_subject = question_data.get('subject', -1)
+        q_type = question_data.get('type', -1)
+        q_concepts = question_data.get("concepts", None)
+        q_data = question_data.get("data", None)@staticmethod
     def create_question_from_JSON(llm_output, ConceptDatabase) -> 'Question':
         """
 

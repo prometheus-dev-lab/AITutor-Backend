@@ -3,6 +3,8 @@ from enum import IntEnum
 import json
 import re
 
+from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
+
 class NoteBank:
     __NOTEBANK_REGEX = re.compile(r'\`\`\`json([^\`]*)\`\`\`')
     class Op(IntEnum):
@@ -81,7 +83,12 @@ class NoteBank:
         """
         Returns Environment Observation String which the model will use for prediction.
         """
-        return "{\"Notebank\": [" + "\n".join(["{" + f"\"index\": {i}, \"note\": \"{val}\""+ "}," for i, val in enumerate(self.__notes)]) + "]}" if self.__notes else "// the Notebank is Empty."
+        return "**Notebank**:" + "\n".join([f"\t{i}. {val}" for i, val in enumerate(self.__notes)]) if self.__notes else " The Notebank is Empty."
+    
+    def format_json(self) -> str:
+        return json.dumps({"Notebank": [
+            {"index": i, "note" : n} for i, n in enumerate(self.__notes)
+        ]}) 
     
     def clear(self,):
         """Clears the Notebank's content."""

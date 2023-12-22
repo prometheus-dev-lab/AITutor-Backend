@@ -1,8 +1,8 @@
 from django.test import TestCase
 from AITutor_Backend.models import SessionModel, TutorEnvModel, NotebankModel, ChatHistoryModel, ConceptDatabaseModel, ConceptModel, QuestionSuiteModel, QuestionModel, SlidePlannerModel, SlideModel, DatabaseManager
 from AITutor_Backend.src.TutorUtils.concepts import ConceptDatabase, Concept
-from AITutor_Backend.src.TutorUtils.questions import QuestionSuite, Question
-from AITutor_Backend.src.TutorUtils.slides import SlidePlanner, Slide, Purpose
+from AITutor_Backend.src.TutorUtils.Modules.questions import QuestionSuite, Question
+from AITutor_Backend.src.TutorUtils.Modules.slides import SlidePlanner, Slide, Purpose
 
 from asgiref.sync import sync_to_async, async_to_sync
 import uuid

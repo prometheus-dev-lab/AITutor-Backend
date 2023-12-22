@@ -6,8 +6,8 @@ from AITutor_Backend.src.TutorUtils.chat_history import *
 from AITutor_Backend.src.BackendUtils.sql_serialize import *
 from AITutor_Backend.src.TutorUtils.prompts import Prompter, PromptAction
 from AITutor_Backend.src.TutorUtils.concepts import ConceptDatabase
-from AITutor_Backend.src.TutorUtils.slides import SlidePlanner, Slide
-from AITutor_Backend.src.TutorUtils.questions import QuestionSuite
+from AITutor_Backend.src.TutorUtils.Modules.slides import SlidePlanner, Slide
+from AITutor_Backend.src.TutorUtils.Modules.questions import QuestionSuite
 from AITutor_Backend.src.BackendUtils.replicate_api import ReplicateAPI
 import threading
 import os
@@ -71,7 +71,7 @@ class TutorEnv(SQLSerializable,):
             import openai
             client = openai.Client()
             while True:
-                f"// Input:\n {self.env.notebank.env_string()}\n\n// Output:"
+                f"// Input:\n {self.env.notebank.format_json()}\n\n// Output:"
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo-16k",
                     messages=[
@@ -101,7 +101,7 @@ class TutorEnv(SQLSerializable,):
             import openai
             client = openai.Client()
             while True:
-                f"// Input:\n {self.env.notebank.env_string()}\n\n// Output:"
+                f"// Input:\n {self.env.notebank.format_json()}\n\n// Output:"
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo-16k",
                     messages=[
@@ -135,7 +135,7 @@ class TutorEnv(SQLSerializable,):
             import openai
             client = openai.Client()
             while True:
-                f"// Input:\n {self.env.notebank.env_string()}\n\n// Output:"
+                f"// Input:\n {self.env.notebank.format_json()}\n\n// Output:"
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo-16k",
                     messages=[

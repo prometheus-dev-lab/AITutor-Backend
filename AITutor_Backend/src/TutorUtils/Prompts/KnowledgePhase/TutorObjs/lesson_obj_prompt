@@ -1,22 +1,24 @@
-Convert the provided Chapters into the following format:
+Convert the provided Lessons into the following format:
 {
     "title": "title string",
-    "overview": "chapter overview statement",
-    "objectives": "learning outcomes statement",
+    "overview": "lesson overview statement",
+    "objectives": "lesson objectives statement",
     "concepts": [
         "concept 1", "concept 2", //...
     ]
 }
 ```
 
-Where you construct a list of chapters like such:
+Where you construct a list of lessons like such:
 ```json
 {
-  "Chapters": [
-        // ... List of Chapters
+  "Lessons": [
+        // ... List of Lessons
   ]
 }
 ```
 
-Chapters:
-$CHAPTERS$
+Lessons:
+$LESSONS$
+
+Ensure your output is in valid JSON Format.

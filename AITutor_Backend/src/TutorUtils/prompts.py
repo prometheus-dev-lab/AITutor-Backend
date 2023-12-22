@@ -24,15 +24,17 @@ class Prompter:
         def __init__(self, ):
             self.client = openai.OpenAI() if USE_OPENAI else ReplicateAPI()
         
-        def request_output_from_llm(self, prompt, model: str):
-            """Requests the Concept information from an LLM.
+        def request_output_from_llm(self, prompt, model: str, max_length=3000, temp=0.5):
+            """Requests data from an LLM.
 
-            Args:
-                prompt: (str) - string to get passed to the model
-                model: (str) - 
+        Args:
+            prompt: (str) - string to get passed to the model
+            model: (str) - name of the model to use
+            max_length: (int) - max number of tokens for the request
+            temp: (float) - temperature for LLM to use in the request
 
-            Returns:
-                _type_: _description_
+        Returns:
+            str: llm output
             """
             if USE_OPENAI:
                 response = self.client.chat.completions.create(
@@ -47,8 +49,8 @@ class Prompter:
                             "content": prompt,
                         },
                     ],
-                    temperature=0.5,
-                    max_tokens=3000,
+                    temperature=temp,
+                    max_tokens=max_length,
                     top_p=1,
                     frequency_penalty=0,
                     presence_penalty=0,
@@ -58,6 +60,7 @@ class Prompter:
                 return response.choices[0].message.content
             else:
                 return self.client.get_output(prompt, " ")
+        
         def _load_prompt(self, prompt_template, state_dict):
             prompt_string = prompt_template
             # Replace Values in Prompt:
@@ -75,10 +78,8 @@ class Prompter:
         self.__questions_asked = 0
         with open(question_prompt_file, "r", encoding="utf-8") as f:
             self.__question_prompt_template = "\n".join(f.readlines())
-
         with open(notebank_prompt_file, "r", encoding="utf-8") as f:
             self.__notebank_prompt_template = "\n".join(f.readlines())
-        
         with open(plan_prompt_file, "r", encoding="utf-8") as f:
             self.__plan_prompt_template = "\n".join(f.readlines())
     

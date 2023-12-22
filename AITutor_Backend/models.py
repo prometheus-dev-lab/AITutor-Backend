@@ -1,8 +1,8 @@
 from django.db import models
 from AITutor_Backend.src.tutor_env import TutorEnv
 from AITutor_Backend.src.TutorUtils.concepts import ConceptDatabase
-from AITutor_Backend.src.TutorUtils.questions import QuestionSuite
-from AITutor_Backend.src.TutorUtils.slides import SlidePlanner
+from AITutor_Backend.src.TutorUtils.Modules.questions import QuestionSuite
+from AITutor_Backend.src.TutorUtils.Modules.slides import SlidePlanner
 # from AITutor_Backend.src.TutorUtils.prompts import Prompter
 import uuid
 from asgiref.sync import sync_to_async, async_to_sync
