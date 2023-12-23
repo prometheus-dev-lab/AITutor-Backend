@@ -38,3 +38,21 @@ jobs:
     - name: Test with pytest
       run: |
         OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} python3 test.py
+    
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_Access_Key_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_Secret_Access_Key }}
+        region: ${{ secrets.Default_region_name }}
+
+    - name: Build, tag, and push image to Amazon ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: prometheus
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
