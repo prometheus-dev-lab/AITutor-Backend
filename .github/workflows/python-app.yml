@@ -43,9 +43,9 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        region: ${{ secrets.DEFAULT_REGION_NAME }}
+        region: ${{ vars.DEFAULT_REGION_NAME }}
 
     - name: Build, tag, and push image to Amazon ECR
       env:
