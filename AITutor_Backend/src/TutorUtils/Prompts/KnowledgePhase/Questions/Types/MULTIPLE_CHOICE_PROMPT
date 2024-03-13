@@ -1,0 +1,93 @@
+## Type Requirements
+The question provided has been selected to be a Multiple Choice Question. Multiple Choice questions will need potential answers, and also a correct entry. Multiple Choice questions should be as tricky and academic as possible. 
+
+Based on the instructions you created, you will create a rubric out of 5 possible points to grade a response to the question. 
+
+**Requirements:**
+- Multiple Choice 'Entries' which allow the student 
+- 
+Here are an example Instructions and the respective Question Generation Process.
+
+#### Example 1: Generative AI and Creative Industries
+**Instructions:** Which of the following best represents the impact of generative AI on creative industries?
+
+**Entry 1:** Generative AI primarily reduces job opportunities in creative industries by automating creative tasks.
+**Entry 2:** Generative AI has no significant impact on creative industries as it cannot replicate human creativity.
+**Entry 3:** Generative AI complements human creativity, leading to new forms of art and enhancing the creative process.
+**Entry 4:** Generative AI is mainly used for data analysis, not affecting the creative aspects of industries.
+**Correct Entry:** Entry 3
+
+**JSON Translation:**
+```json
+{
+ "instructions": "Which of the following best represents the impact of generative AI on creative industries?",
+ "entry_1": "Generative AI primarily reduces job opportunities in creative industries by automating creative tasks.",
+ "entry_2": "Generative AI has no significant impact on creative industries as it cannot replicate human creativity.",
+ "entry_3": "Generative AI complements human creativity, leading to new forms of art and enhancing the creative process.",
+ "entry_4": "Generative AI is mainly used for data analysis, not affecting the creative aspects of industries.",
+ "correct_entry": "entry_3"
+}
+```
+
+#### Example 2: BFS and DFS in Graph Algorithms
+**Instructions:** Which of the following statements accurately contrasts Breadth-First Search (BFS) and Depth-First Search (DFS) in graph algorithms?
+
+**Entry 1:** Both BFS and DFS are equally efficient in memory usage.
+**Entry 2:** BFS is generally used for finding the shortest path, while DFS is used for topological sorting.
+**Entry 3:** DFS is faster than BFS in all scenarios.
+**Entry 4:** BFS and DFS cannot be used in directed graphs.
+**Correct Entry:** Entry 2
+
+**JSON Translation:**
+```json
+{
+ "instructions": "Which of the following statements accurately contrasts Breadth-First Search (BFS) and Depth-First Search (DFS) in graph algorithms?",
+ "entry_1": "Both BFS and DFS are equally efficient in memory usage.",
+ "entry_2": "BFS is generally used for finding the shortest path, while DFS is used for topological sorting.",
+ "entry_3": "DFS is faster than BFS in all scenarios.",
+ "entry_4": "BFS and DFS cannot be used in directed graphs.",
+ "correct_entry": "entry_2"
+}
+```
+
+#### Example 3: Causes of the American Civil War
+**Instructions:** Which set of factors best represents the main causes of the American Civil War?
+
+**Entry 1:** Economic disparities, cultural differences, and technological advancements.
+**Entry 2:** State rights, slavery, and economic conflicts between the North and South.
+**Entry 3:** International politics, industrial revolution, and religious conflicts.
+**Entry 4:** Territorial expansion, colonialism, and the abolition movement.
+**Correct Entry:** Entry 2
+
+**JSON Translation:**
+```json
+{
+ "instructions": "Which set of factors best represents the main causes of the American Civil War?",
+ "entry_1": "Economic disparities, cultural differences, and technological advancements.",
+ "entry_2": "State rights, slavery, and economic conflicts between the North and South.",
+ "entry_3": "International politics, industrial revolution, and religious conflicts.",
+ "entry_4": "Territorial expansion, colonialism, and the abolition movement.",
+ "correct_entry": "entry_2"
+}
+```
+
+#### Example 4: Autonomous Vehicles
+**Instructions:** Which of the following best describes both the potential benefits and challenges of autonomous vehicles?
+
+**Entry 1:** They reduce traffic congestion but struggle with ethical decision-making.
+**Entry 2:** They offer improved safety but may lead to increased vehicle dependency.
+**Entry 3:** They are environmentally friendly but can only operate in clear weather conditions.
+**Entry 4:** They ensure absolute privacy but are prone to frequent technical failures.
+**Correct Entry:** Entry 2
+
+**JSON Translation:**
+```json
+{
+ "instructions": "Which of the following best describes both the potential benefits and challenges of autonomous vehicles?",
+ "entry_1": "They reduce traffic congestion but struggle with ethical decision-making.",
+ "entry_2": "They offer improved safety but may lead to increased vehicle dependency.",
+ "entry_3": "They are environmentally friendly but can only operate in clear weather conditions.",
+ "entry_4": "They ensure absolute privacy but are prone to frequent technical failures.",
+ "correct_entry": "entry_2"
+}
+```

@@ -1,22 +1,19 @@
 import json
-from typing import List, Tuple, Union
+import os
 import re
-from enum import IntEnum
 import threading
+from enum import IntEnum
+from typing import List, Tuple, Union
+
 import openai
 
-from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
-from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
 from AITutor_Backend.src.BackendUtils.env_serialize import EnvSerializable
-
+from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
+from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
+from AITutor_Backend.src.DataUtils.file_utils import save_training_data
 from AITutor_Backend.src.TutorUtils.concepts import *
 from AITutor_Backend.src.TutorUtils.notebank import *
 
-from AITutor_Backend.src.DataUtils.file_utils import save_training_data
-from enum import IntEnum
-from typing import List, Tuple
-
-import os
 DEBUG = bool(os.environ.get("DEBUG", 0))
 
 class TutorObjLLMAPI:
@@ -100,7 +97,6 @@ class TutorObjLLMAPI:
             TutorObjLLMAPI.NOTEBANK_STATE_DELIMITER: notebank_state,
             TutorObjLLMAPI.CONCEPT_GRAPH_DELIMITER: concept_graph_str,
         })
-    
 
 class TutorObjManager:
     def __init__(self, notebank:NoteBank, concept_database:ConceptDatabase,):
@@ -120,8 +116,8 @@ class TutorObjManager:
         while True:
             slides_prompt = self.llm_api.prompt_chapter_plan(self.notebank.env_string(), self.cd.get_concept_graph_str())
             llm_output = self.llm_api.request_output_from_llm(slides_prompt, "gpt-4-1106-preview")
-            slides_json_conversion = self.llm_api.request_output_from_llm(self.llm_api.__chapter_obj_prompt, )
-            success, chapters = Chapter.create_chapters_from_JSON(llm_output)
+            slides_json_conversion = self.llm_api.request_output_from_llm(self.llm_api._chapter_obj_prompt.replace("$CHAPTERS$", llm_output), )
+            success, chapters = Chapter.create_chapters_from_JSON(slides_json_conversion)
             if not success: continue
             self.Chapters = chapters
             self.num_chapters = len(self.Chapters)
@@ -131,12 +127,31 @@ class TutorObjManager:
     def initialize_chapter(self, chapter_idx,):
         if not 0 <= chapter_idx < self.num_chapters:
             raise IndexError("Cannot Access Out-Of-Bounds Chapters.")
-        
+        self.generate_modules(chapter_idx)
+    
+    def generate_modules(self, chapter_idx):
+        """
+            Generates a Modules from the provided Chapter Context.
+            TODO: Incorporate new Algorithm for module construction!  
+        """
+        prev_chapter = self.Chapters[chapter_idx-1].env_string() if chapter_idx > 0 else " There is no previous Chapter."
+        curr_chapter = self.Chapters[chapter_idx].env_string()
+        while True:
+            lessons_prompt = self.llm_api.prompt_lesson_plan(self.notebank.env_string(), self.cd.main_concept, prev_chapter, curr_chapter)
+            llm_output = self.llm_api.request_output_from_llm(lessons_prompt, "gpt-4-1106-preview")
+            lessons_json_conversion = self.llm_api.request_output_from_llm(self.llm_api._lesson_obj_prompt.replace("$LESSONS$", llm_output))
+            success, lessons = Lesson.create_lessons_from_JSON(lessons_json_conversion)
+            if not success: continue
+            self.Modules = lessons
+            self.num_chapters = len(self.Chapters)
+            break
+        self.initialized = True
+        self.current_chapter_idx = 0
 
 class Chapter(JSONSerializable, SQLSerializable, EnvSerializable):
     JSON_REGEX = re.compile(r'\`\`\`json([^\`]*)\`\`\`')
     def __init__(self, title, overview, outcomes, concepts):
-        self.Lessons = []
+        self.Lessons = [] #TODO: Change to be abstract class Module
         self.title = title
         self.overview = overview
         self.outcomes = outcomes
@@ -151,16 +166,36 @@ class Chapter(JSONSerializable, SQLSerializable, EnvSerializable):
                 regex_match = regex_match[0].replace("```json", "").replace("```", "").strip()
             chapter_data = regex_match if regex_match else llm_output
             chapter_data = json.loads(chapter_data)
-            chapters = [Chapter(ch['title'], ch["overview"], ch['outcomes'], [c for c in [cd.get_concept(concept) for concept in ch['concepts']] if c is not None]) for ch in chapters]
+            chapters = [Chapter(ch['title'], ch["overview"], ch['outcomes'], [c for c in [cd.get_concept(concept) for concept in ch['concepts']] if c is not None]) for ch in chapter_data["Chapters"]]
             return True, chapters
         except json.JSONDecodeError:
             return False, "Could not decode the object"
+    
+    def env_string(self):
+        return f"""### Chapter Title: {self.title}\n - **Overview:** {self.overview}\n - **Outcomes:**\n"""+ "\n".join([f"\t{i}. {o}" for i, o in enumerate(self.outcomes)])+"\n"+ " - **Concepts:**\n"+ "\n".join([f"\t - {c.name}" for c in self.concepts])
 
 class Lesson(JSONSerializable, SQLSerializable, EnvSerializable,):
     def __init__(self, title, overview, objectives, concepts):
         self.Slides = []
-        self.Homework = []
+        self.Homework = [] 
         self.title = title
-        self. overview = overview
+        self.overview = overview
         self.objectives = objectives
         self.concepts = concepts
+        self.initialized = False
+    
+    @staticmethod
+    def create_lessons_from_JSON(llm_output, cd:ConceptDatabase):
+        try: 
+            regex_match = Chapter.JSON_REGEX.findall(llm_output)
+            if regex_match:
+                regex_match = regex_match[0].replace("```json", "").replace("```", "").strip()
+            lesson_data = regex_match if regex_match else llm_output
+            lesson_data = json.loads(lesson_data)
+            lessons = [Lesson(l['title'], l["overview"], l['objectives'], [c for c in [cd.get_concept(concept) for concept in l['concepts']] if c is not None]) for l in lesson_data["Lessons"]]
+            return True, lessons
+        except json.JSONDecodeError:
+            return False, "Could not decode the object"
+        
+    def env_string(self):
+        return f"""### Lesson Title: {self.title}\n - **Overview:** {self.overview}\n - **Outcomes:**\n"""+ "\n".join([f"\t{i}. {o}" for i, o in enumerate(self.objectives)])+"\n"+" - **Concepts:**\n"+ "\n".join([f"\t - {c.name}" for c in self.concepts])

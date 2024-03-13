@@ -1,11 +1,15 @@
-import unittest
-import os
 import json
+import os
 import pickle as pkl
+import unittest
 
 GENERATE_DATA = bool(os.environ.get("GENERATE_TESTS", 0))
 
-from AITutor_Backend.src.TutorUtils.Modules.slides import SlidePlan, Slide, SlidePlanner, Purpose, Concept, ConceptDatabase
+from AITutor_Backend.src.TutorUtils.Modules.slides import (Concept,
+                                                           ConceptDatabase,
+                                                           Purpose, Slide,
+                                                           SlidePlan,
+                                                           SlidePlanner)
 from AITutor_Backend.src.TutorUtils.notebank import NoteBank
 
 agent_ai_notes = """User expresses interest in learning about agent AI.

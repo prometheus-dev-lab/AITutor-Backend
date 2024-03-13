@@ -1,0 +1,254 @@
+### Concept Based Learning
+
+Students learn based on Concepts. We develop learning material based on concepts and measure a student's performance based on concepts. We will be evaluating the student's performance based on the number of questions they answer correctly per concept. As an expert and all-knowing AI Tutor, you have to define the concepts the student needs to learn in order to measure their understanding of the material. This means that based on the Main Concept, you as the expert and all-knowing AI Tutor will have do discover the set of related and necessary concepts for them to learn. This should be done during the planning phase. This is a crucial step in our learning process.
+
+
+
+The environment contains observations which provide context for some aspect you are currently working on.
+
+
+
+### What is a Concept?
+
+Concepts are foundational ideas or mental constructs that represent the essential characteristics of a subject, distilled into a form that can be broadly applied across various contexts. They're not limited to terminology like nouns or verbs, but rather encompass a wider range of knowledge:
+
+
+
+- **Principles, Equations, Algorithms, and Theories**: These are foundational rules or explanations that govern phenomena within a particular field of study, such as the Law of Demand in economics or Newton's Laws of Motion in physics, the Bellman Equation, Breadth-First Search, Minimum Edit Distance, or String Theory.
+
+
+
+- **Processes and Methods**: These concepts outline steps or sequences of actions to achieve a certain goal or understand a phenomenon, like the Scientific Method or the Water Cycle.
+
+
+
+- **Systems and Models**: These are structured sets of concepts that work together, such as the Solar System in astronomy or the Circulatory System in biology.
+
+
+
+- **Structures and Frameworks**: These are organizational or structural concepts that help categorize or systematize information, like the Periodic Table in chemistry or Maslow's Hierarchy of Needs in psychology.
+
+
+
+- **Values and Ethics**: Concepts that represent moral principles or standards of behavior, which are central to disciplines like philosophy and law.
+
+
+
+- **Patterns and Relationships**: These are concepts that identify regularities and associations between different entities or phenomena, such as supply and demand in economics or symbiotic relationships in ecology.
+
+
+
+- **Skills and Techniques**: These are practical applications of knowledge that allow for the performance of specific tasks, such as statistical analysis in mathematics or persuasive writing in language arts. 
+
+
+
+## Environment
+
+Here is the current Environment State:
+
+
+
+**Tutor Planner**: 
+
+<TutorPlan>
+
+**Notebank**:	0. User expresses interest in learning about regular expressions.
+	1. Main Concept: Regular Expressions
+	2. Student wants to learn about regular expressions.
+	3. Subconcept: Introduction to Regular Expressions
+	4. Subconcept: Text Normalization
+	5. Subconcept: Expression Patterns
+	6. Subconcept: Concatenation
+	7. Subconcept: Disjunction
+	8. Subconcept: Range
+	9. Subconcept: Kleene Star and Plus
+	10. Subconcept: Anchors
+	11. Subconcept: Counters
+	12. Subconcept: Precedence
+	13. Subconcept: Substitution
+	14. Subconcept: Lookahead Assertions
+	15. Student has limited prior knowledge of regex concepts in string manipulation and pattern matching.
+	16. Student wants to becom proficient in regular expressions.
+	17. Student Interest Statement: I like bird watching, I have a nest in my backyard with a camera that tracks birds over time, its so cute.
+	18. Student Slides Statement: I learn by example, the more examples the better.
+	19. Student Questions Statement: I would like to tackle programming questions, text entry questions, and multiple choice questions.
+	20. 
+
+</TutorPlan>
+
+
+
+**Main Concept**:
+
+<MainConcept>
+
+Regular Expressions
+
+</MainConcept>
+
+
+
+## Your Task
+
+Create a Concept Graph, i.e. Concepts and their sub Concepts, which fully covers the Main Concept from the context of the environment. Output the generic list format and then convert the output into the following plaintext format separated by new lines and tabs:
+
+
+
+1. Concept A
+
+   - Concept B
+
+       - concept c
+
+
+
+2. Concept D
+
+...
+
+
+
+```plaintext
+
+concept a
+
+    concept b
+
+        concept c
+
+concept d
+
+...
+
+```
+
+
+
+Note: It is important to include as much academic detail as possible since the graph you create will be used to teach a student the topic.
+[->LLM_OUTPUT]
+Based on the environment state and the main concept of Regular Expressions, here is a concept graph that covers the main concept and its related sub-concepts:
+
+```
+Regular Expressions
+
+    Introduction to Regular Expressions
+        Definition and Usage
+        History and Evolution
+        Applications of Regular Expressions
+
+    Basic Syntax and Characters
+        Literal Characters
+        Metacharacters
+        Escape Sequences
+
+    Character Classes
+        Predefined Character Classes
+        Custom Character Classes
+        Negation in Character Classes
+
+    Quantifiers
+        Greedy vs. Lazy Quantification
+        Kleene Star and Plus
+        Counters (Exact, Range, and At Least N)
+
+    Grouping and Capturing
+        Parentheses for Grouping
+        Backreferences
+        Non-Capturing Groups
+
+    Anchors and Boundaries
+        Start and End of String Anchors
+        Word Boundaries
+
+    Alternation and Grouping
+        Disjunction (OR Operator)
+        Grouping Constructs
+        Precedence and Nesting
+
+    Special Constructs
+        Lookahead and Lookbehind Assertions
+        Conditional Expressions
+        Comments and Modifiers
+
+    Text Normalization
+        Whitespace Matching
+        Unicode and ASCII Considerations
+
+    Pattern Matching Functions
+        Match and Search Functions
+        Substitution and Replacement
+        Splitting Strings
+
+    Regular Expression Tools and Libraries
+        Regex in Different Programming Languages
+        Online Regex Testers
+        Regex in Text Editors and IDEs
+
+    Best Practices and Optimization
+        Readability and Maintainability
+        Performance Considerations
+        Common Pitfalls and How to Avoid Them
+
+    Practical Applications and Examples
+        Validating User Input
+        Text Parsing and Data Extraction
+        Search and Replace Operations
+```
+
+And here is the plaintext format as requested:
+
+```plaintext
+Regular Expressions
+    Introduction to Regular Expressions
+        Definition and Usage
+        History and Evolution
+        Applications of Regular Expressions
+    Basic Syntax and Characters
+        Literal Characters
+        Metacharacters
+        Escape Sequences
+    Character Classes
+        Predefined Character Classes
+        Custom Character Classes
+        Negation in Character Classes
+    Quantifiers
+        Greedy vs. Lazy Quantification
+        Kleene Star and Plus
+        Counters (Exact, Range, and At Least N)
+    Grouping and Capturing
+        Parentheses for Grouping
+        Backreferences
+        Non-Capturing Groups
+    Anchors and Boundaries
+        Start and End of String Anchors
+        Word Boundaries
+    Alternation and Grouping
+        Disjunction (OR Operator)
+        Grouping Constructs
+        Precedence and Nesting
+    Special Constructs
+        Lookahead and Lookbehind Assertions
+        Conditional Expressions
+        Comments and Modifiers
+    Text Normalization
+        Whitespace Matching
+        Unicode and ASCII Considerations
+    Pattern Matching Functions
+        Match and Search Functions
+        Substitution and Replacement
+        Splitting Strings
+    Regular Expression Tools and Libraries
+        Regex in Different Programming Languages
+        Online Regex Testers
+        Regex in Text Editors and IDEs
+    Best Practices and Optimization
+        Readability and Maintainability
+        Performance Considerations
+        Common Pitfalls and How to Avoid Them
+    Practical Applications and Examples
+        Validating User Input
+        Text Parsing and Data Extraction
+        Search and Replace Operations
+```
+
+This concept graph should provide a comprehensive roadmap for teaching and evaluating the student's understanding of regular expressions.

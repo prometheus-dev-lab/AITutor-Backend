@@ -1,9 +1,10 @@
-from typing import Tuple, Union, List
-from enum import IntEnum
 import json
 import re
+from enum import IntEnum
+from typing import List, Tuple, Union
 
 from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
+
 
 class NoteBank:
     __NOTEBANK_REGEX = re.compile(r'\`\`\`json([^\`]*)\`\`\`')

@@ -1,12 +1,14 @@
-import unittest
-import os
 import json
+import os
+import unittest
 
 GENERATE_DATA = bool(os.environ.get("GENERATE_TESTS", 0))
 
-from AITutor_Backend.src.TutorUtils.Modules.questions import QuestionSuite, Question
-from AITutor_Backend.src.TutorUtils.concepts import ConceptDatabase, Concept
+from AITutor_Backend.src.TutorUtils.concepts import Concept, ConceptDatabase
+from AITutor_Backend.src.TutorUtils.Modules.questions import (Question,
+                                                              QuestionSuite)
 from AITutor_Backend.src.TutorUtils.notebank import NoteBank
+
 agent_ai_notes = """User expresses interest in learning about agent AI.
 Main Concept: Agent AI
 Student wants to learn about agent AI.
@@ -111,11 +113,12 @@ class QuestionSuiteTests(unittest.TestCase):
         self.assertEqual(len(self.question_suite.Questions), 0, "Initial question list should be empty")
 
     def test_generate_example_questions(self):
-        if not GENERATE_DATA: return
+        # if not GENERATE_DATA: return
         # return # TODO: Integrate Generation Testing on GH Actions
         notebank = NoteBank()
         [notebank.add_note(note) for note in regex_notes.split("\n")]
         cd = ConceptDatabase("Regular Expressions", notebank.env_string())
+        cd.generate_concept_graph()
         q_suite = QuestionSuite(10, notebank, cd)
         q_suite.generate_question_data()
         self.assertEqual(len(q_suite.Questions), 10, "QuestionSuite should generate specified number of questions")
@@ -130,7 +133,7 @@ class QuestionSuiteTests(unittest.TestCase):
 
     def test_to_sql_and_from_sql(self):
         q_suite = QuestionSuite(3, self.notebank, self.concept_db)
-        q_suite.Questions = [Question(i, i, {"test": 42, "test2": "this is test data"}, [self.concept_db.get_concept(f"Test Concept {i+1}")]) for i in range(4)]
+        q_suite.Questions = [Question(i, i, "some instructions", {"test": 42, "test2": "this is test data"}, [self.concept_db.get_concept(f"Test Concept {i+1}")]) for i in range(4)]
         sql_data = q_suite.to_sql()
         new_question_suite = QuestionSuite.from_sql(sql_data[0], sql_data[1], sql_data[2], self.notebank, self.concept_db)
         self.assertEqual(len(new_question_suite.Questions), 4, "from_sql should correctly reconstruct the question suite")
@@ -156,7 +159,7 @@ class QuestionTests(unittest.TestCase):
             "correct_entry": "entry2",
             "concepts": ["Test Concept 1"]
         }
-        self.question = Question(Question.Subject.MATH, Question.Type.MULTIPLE_CHOICE, self.question_data, [self.concept])
+        self.question = Question(Question.Subject.MATH, Question.Type.MULTIPLE_CHOICE, "some instructions", self.question_data, [self.concept])
 
     def test_create_question_from_json(self):
         # Math Multiple Choice:
@@ -228,7 +231,7 @@ class QuestionTests(unittest.TestCase):
 
     def test_to_sql_and_from_sql(self):
         sql_data = self.question.to_sql()
-        reconstructed_question = Question.from_sql(sql_data[0], sql_data[1], sql_data[2], [self.concept])
+        reconstructed_question = Question.from_sql(sql_data[0], sql_data[1], sql_data[2], sql_data[3], [self.concept])
         self.assertEqual(reconstructed_question.data['data'], "Sample question", "from_sql should correctly reconstruct the question")
 
     def test_format_json(self):

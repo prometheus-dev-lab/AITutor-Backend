@@ -1,11 +1,14 @@
+# from AITutor_Backend.src.TutorUtils.prompts import Prompter
+import uuid
+
+from asgiref.sync import async_to_sync, sync_to_async
 from django.db import models
+
 from AITutor_Backend.src.tutor_env import TutorEnv
 from AITutor_Backend.src.TutorUtils.concepts import ConceptDatabase
 from AITutor_Backend.src.TutorUtils.Modules.questions import QuestionSuite
 from AITutor_Backend.src.TutorUtils.Modules.slides import SlidePlanner
-# from AITutor_Backend.src.TutorUtils.prompts import Prompter
-import uuid
-from asgiref.sync import sync_to_async, async_to_sync
+
 
 class ConceptDatabaseModel(models.Model):
     main_concept = models.CharField(max_length=200)
@@ -27,6 +30,7 @@ class QuestionModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     subject = models.IntegerField()
     type = models.IntegerField()
+    instructions = models.TextField()
     data = models.TextField()
     question_suite = models.ManyToManyField(QuestionSuiteModel, related_name='questions')
     concepts = models.TextField()
@@ -139,7 +143,7 @@ class DatabaseManager:
             self._qs_obj_idx = self.question_suite_model.current_obj_idx
             question_data = []
             for question in self.question_suite_model.questions.all():
-                question_data.append([question.subject, question.type, question.data, question.concepts.split("[SEP]")])
+                question_data.append([question.subject, question.type, question.instructions, question.data, question.concepts.split("[SEP]")])
             
             self.question_suite = QuestionSuite.from_sql(self._qs_obj_idx, self._num_questions, question_data, self.tutor_env.notebank, self.concept_database)
 
@@ -307,8 +311,9 @@ class DatabaseManager:
                         id=question_id,
                         subject=question_data[0],
                         type=question_data[1],
-                        data=question_data[2],
-                        concepts="[SEP]".join(question_data[3])
+                        instructions=question_data[2],
+                        data=question_data[3],
+                        concepts="[SEP]".join(question_data[4])
                     )
                     question_models += [question_model]
                 # Link the concepts to the ConceptDatabaseModel:
@@ -325,21 +330,22 @@ class DatabaseManager:
                 try:
                     # Attempt to get the question associated with the specific QuestionSuiteModel:
                     question_model = QuestionModel.objects.get(
-                        data=question_data[2], 
+                        instructions=question_data[2], 
                         question_suite=self.question_suite_model
                     )
                     # Update with any new data since you've found an existing model
                     question_model.subject = question_data[0]
                     question_model.type = question_data[1]
-                    question_model.concepts = "[SEP]".join(question_data[3])
+                    question_model.concepts = "[SEP]".join(question_data[4])
                     question_model.save()
                 except QuestionModel.DoesNotExist:
                     # If it does not exist, create it and add it to the current QuestionSuiteModel:
                     question_model = QuestionModel.objects.create(
                         subject=question_data[0],
                         type=question_data[1],
-                        data=question_data[2],
-                        concepts="[SEP]".join(question_data[3])
+                        instructions=question_data[2],
+                        data=question_data[3],
+                        concepts="[SEP]".join(question_data[4])
                     )
                 question_models.append(question_model)
 

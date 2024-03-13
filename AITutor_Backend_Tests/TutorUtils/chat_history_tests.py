@@ -1,5 +1,7 @@
 import unittest
+
 from AITutor_Backend.src.TutorUtils.chat_history import *
+
 
 class ChatHistoryTests(unittest.TestCase):
     def test_chat_history_initialization(self):

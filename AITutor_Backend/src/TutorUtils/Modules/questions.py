@@ -1,16 +1,17 @@
-from enum import IntEnum
-from typing import Tuple, List
-import re
-import os
-import openai
 import json
-from AITutor_Backend.src.DataUtils.file_utils import save_training_data
-from AITutor_Backend.src.BackendUtils.replicate_api import ReplicateAPI
-from AITutor_Backend.src.BackendUtils.code_executor import CodeExecutor
-from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
-from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
-from AITutor_Backend.src.BackendUtils.env_serialize import EnvSerializable
+import os
+import re
+from enum import IntEnum
+from typing import List, Tuple
 
+import openai
+
+from AITutor_Backend.src.BackendUtils.code_executor import CodeExecutor
+from AITutor_Backend.src.BackendUtils.env_serialize import EnvSerializable
+from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
+from AITutor_Backend.src.BackendUtils.replicate_api import ReplicateAPI
+from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
+from AITutor_Backend.src.DataUtils.file_utils import save_training_data
 
 # TODO: fIX INSTRUCTIONS PARAMETER
 USE_OPENAI = True
@@ -153,7 +154,7 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable):
     def from_sql(current_obj_idx, num_questions, questions:List[Tuple[int, int, str, List[str]]], Notebank, ConceptDatabase):
         q_suite = QuestionSuite(num_questions, Notebank, ConceptDatabase)
         q_suite.current_obj_idx = current_obj_idx
-        q_suite.Questions = [Question.from_sql(q[0], q[1], q[2], [ConceptDatabase.get_concept(cpt) for cpt in q[3]]) for q in questions]
+        q_suite.Questions = [Question.from_sql(q[0], q[1], q[2], q[3], [ConceptDatabase.get_concept(cpt) for cpt in q[4]]) for q in questions]
         return q_suite
 
     def get_object(self, idx):
@@ -230,24 +231,7 @@ class Question(JSONSerializable, SQLSerializable):
         """
 
         """
-        regex_match = Question.__QUESTION_REGEX.findall(llm_output)
-        # Try to get json format or attempt to use output as json
-        if regex_match:
-            regex_match = regex_match[0].replace("```json", "").replace("```", "").strip()
-        question_data = regex_match if regex_match else llm_output
-        try:
-            question_data = json.loads(question_data)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Error parsing JSON on output: {llm_output},  error: {str(e)}")
-
-        q_subject = question_data.get('subject', -1)
-        q_type = question_data.get('type', -1)
-        q_concepts = question_data.get("concepts", None)
-        q_data = question_data.get("data", None)@staticmethod
-    def create_question_from_JSON(llm_output, ConceptDatabase) -> 'Question':
-        """
-
-        """
+        
         regex_match = Question.__QUESTION_REGEX.findall(llm_output)
         # Try to get json format or attempt to use output as json
         if regex_match:
@@ -307,7 +291,7 @@ class Question(JSONSerializable, SQLSerializable):
         # Code Questions taken care of by code entry
         # Conceptual Questions do not require any additional checks, as they are topic related questions that are either open-ended or multiple choice. The TEXT ENTRY checks and the MULTIPLE_CHOICE checks already assure this to be the case.
         
-        return Question(q_subject, q_type, q_data, q_concepts)
+        return Question(q_subject, q_type, "", q_data, q_concepts)
     
     def evaluate_user_input(self, user_input):
         """Based on the user_input, evaluate the question and return a value between [0-5].
@@ -324,7 +308,7 @@ class Question(JSONSerializable, SQLSerializable):
         Returns:
             Tuple[str, str, str, List[str]]: (self.subject, self.type, self.data, self.concepts) 
         """
-        return (int(self.subject), int(self.type), json.dumps(self.data), [c.name for c in self.concepts])
+        return (int(self.subject), int(self.type), self.instructions, json.dumps(self.data), [c.name for c in self.concepts])
     
     def format_json(self, ):
         """convert question into JSON object
@@ -339,11 +323,11 @@ class Question(JSONSerializable, SQLSerializable):
             }
     
     @staticmethod
-    def from_sql(q_subject:int, q_type:int, q_data:str, concepts,) -> 'Question':
+    def from_sql(q_subject:int, q_type:int, q_instructions:str, q_data:str, concepts,) -> 'Question':
         """Returns the state of Concept
             - Tuple[str, str, str]: (self.subject, self.type, self.data) 
 
         Returns:
             - Question: representing the class
         """
-        return Question(Question.Subject(q_subject), Question.Type(q_type), dict(json.loads(q_data)), concepts)
+        return Question(Question.Subject(q_subject), Question.Type(q_type), q_instructions, dict(json.loads(q_data)), concepts)

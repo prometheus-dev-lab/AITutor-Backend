@@ -1,6 +1,8 @@
 ### Concept Based Learning
 Students learn based on Concepts. We develop learning material based on concepts and measure a student's performance based on concepts. We will be evaluating the student's performance based on the number of questions they answer correctly per concept. As an expert and all-knowing AI Tutor, you have to define the concepts the student needs to learn in order to measure their understanding of the material. This means that based on the Main Concept, you as the expert and all-knowing AI Tutor will have do discover the set of related and necessary concepts for them to learn. This should be done during the planning phase. This is a crucial step in our learning process.
 
+The environment contains observations which provide context for some aspect you are currently working on.
+
 ### What is a Concept?
 Concepts are foundational ideas or mental constructs that represent the essential characteristics of a subject, distilled into a form that can be broadly applied across various contexts. They're not limited to terminology like nouns or verbs, but rather encompass a wider range of knowledge:
 

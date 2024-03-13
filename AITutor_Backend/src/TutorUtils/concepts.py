@@ -1,14 +1,16 @@
-from typing import Tuple, List
-import re
-import yaml
 import os
-import openai
+import re
 import threading
-from AITutor_Backend.src.BackendUtils.replicate_api import ReplicateAPI
-from AITutor_Backend.src.DataUtils.nlp_utils import edit_distance
-from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
+from typing import List, Tuple
+
+import openai
+import yaml
+
 from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
+from AITutor_Backend.src.BackendUtils.replicate_api import ReplicateAPI
+from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
 from AITutor_Backend.src.DataUtils.file_utils import save_training_data
+from AITutor_Backend.src.DataUtils.nlp_utils import edit_distance
 
 USE_OPENAI = True
 DEBUG = bool(os.environ.get("DEBUG", 0))
@@ -279,7 +281,7 @@ class ConceptDatabase(SQLSerializable):
             _type_: ConceptDatabase
         """
         cd = ConceptDatabase(main_concept, tutor_plan, )
-        split_refs = lambda x: x.split("\n") if x is not None else x
+        split_refs = lambda x: x.split("[SEP]") if x is not None else x
         cd.Concepts = [Concept.from_sql(cpt[0], cpt[1], cpt[2], cpt[3], split_refs(cpt[4]),) for cpt in concepts]
         for concept in cd.Concepts: # Update/Populate references from the temporary references
             concept.parent = cd.get_concept(concept.parent)
@@ -339,7 +341,7 @@ class Concept(JSONSerializable):
             Tuple[str, str, str, str, str]: (concept_name, parent.name, concept_def, concept_latex, refs_str) 
         """
 
-        refs = [ref.name for ref in self.refs if isinstance(ref, Concept)] if self.refs else None
+        refs = "[SEP]".join([ref.name for ref in self.refs if isinstance(ref, Concept)]) if self.refs else None
         parent_name = self.parent.name if self.parent else None
         return (self.name, parent_name, self.definition, self.latex, refs)
   

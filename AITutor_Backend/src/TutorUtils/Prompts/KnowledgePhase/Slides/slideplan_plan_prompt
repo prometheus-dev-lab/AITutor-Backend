@@ -10,7 +10,7 @@ You will be constructing a bulleted-list of SlidePlans, for each SlidePlan s mus
 - **Title**: A descriptive title for the slide.
 - **Purpose**: (Administrative, Informative, Relative, Explainatory, Examplatory) indicating the primary role of the slide in the lesson.
 - **Purpose Statement**: A brief explanation of what the slide aims to achieve or convey.
-- Concepts: A list of relevant Concepts (derived from the Concept Graph) that the slide will address.
+- **Concepts:** A list of relevant Concepts (derived from the Concept Graph) that the slide will address.
 
 ### Concept Based Learning
 Students learn based on Concepts. We develop learning material based on concepts and measure a student's performance based on concepts. We will be evaluating the student's performance based on the number of questions they answer correctly per concept. As an all-knowing tutor, you have connect the learning material (SlidePlans) to the concepts the student needs to learn in order to measure their understanding of the material. This is a crucial step in our learning process.
@@ -19,6 +19,7 @@ Students learn based on Concepts. We develop learning material based on concepts
 You will categorize each slide to fall in one of the following categories, e.g.
 
 **Administrative:** Used to handle administrative information, such as an overview of the lesson, to introduce the lesson in some way, to take questions, ecetera. Think of this like the extra category.
+
 **Introductory:** Introduces a set of new concepts (i.e, the concepts in the DataBase have been discovered 0 times)
 - E.g. this slide will introduce the concept of Variables and assignment (Concepts: Variables, Main Concept Intro to Programming)
 
@@ -48,7 +49,6 @@ You will categorize each slide to fall in one of the following categories, e.g.
 
 - **Notebank:** This Notebank is a plan you have previously developed to help you with this process. It contains the students learning goals and desires, and extra information that they may have provided you.
 
-
 ## Environment
 - **Notebank**:
 <Notebank>
@@ -71,7 +71,6 @@ $ENV.LESSON_PLAN$
 - Create each SlidePlan in a way that logically progresses from previous, building upon established knowledge.
 - Focus on concept-based learning to enhance the student's comprehension and retention. Ensure all concepts defined exist in the Concept Database.
 - Determine the most appropriate purpose for each SlidePlan based on the student's current understanding and the flow of information.
-
 
 ## Your Task
 Utilize the provided Lesson Plan to make a comprehensive and intuitive Slide Plan List which aligns with the educational goals and adheres to the structural requirements of the SlidePlan.

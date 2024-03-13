@@ -1,14 +1,17 @@
-import re
-import os
-from typing import List
-import openai
-from AITutor_Backend.src.BackendUtils.replicate_api import ReplicateAPI
-from enum import IntEnum
-from AITutor_Backend.src.TutorUtils.notebank import NoteBank 
-from AITutor_Backend.src.TutorUtils.chat_history import ChatHistory
-from AITutor_Backend.src.BackendUtils.json_serialize import *
-from AITutor_Backend.src.DataUtils.file_utils import save_training_data
 import json
+import os
+import re
+from enum import IntEnum
+from typing import List
+
+import openai
+
+from AITutor_Backend.src.BackendUtils.json_serialize import *
+from AITutor_Backend.src.BackendUtils.replicate_api import ReplicateAPI
+from AITutor_Backend.src.DataUtils.file_utils import save_training_data
+from AITutor_Backend.src.TutorUtils.chat_history import ChatHistory
+from AITutor_Backend.src.TutorUtils.notebank import NoteBank
+
 USE_OPENAI = True
 
 DEBUG = bool(os.environ.get("DEBUG", 0))

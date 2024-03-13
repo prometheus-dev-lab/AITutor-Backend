@@ -1,8 +1,11 @@
 import unittest
+
 from AITutor_Backend.src.tutor_env import TutorEnv
-from AITutor_Backend.src.TutorUtils.concepts import ConceptDatabase, Concept
-from AITutor_Backend.src.TutorUtils.Modules.questions import QuestionSuite, Question
-from AITutor_Backend.src.TutorUtils.Modules.slides import SlidePlanner, Slide, Purpose
+from AITutor_Backend.src.TutorUtils.concepts import Concept, ConceptDatabase
+from AITutor_Backend.src.TutorUtils.Modules.questions import (Question,
+                                                              QuestionSuite)
+from AITutor_Backend.src.TutorUtils.Modules.slides import (Purpose, Slide,
+                                                           SlidePlanner)
 
 
 class TutorEnvTests(unittest.TestCase):

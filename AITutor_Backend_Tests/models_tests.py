@@ -1,11 +1,20 @@
-from django.test import TestCase
-from AITutor_Backend.models import SessionModel, TutorEnvModel, NotebankModel, ChatHistoryModel, ConceptDatabaseModel, ConceptModel, QuestionSuiteModel, QuestionModel, SlidePlannerModel, SlideModel, DatabaseManager
-from AITutor_Backend.src.TutorUtils.concepts import ConceptDatabase, Concept
-from AITutor_Backend.src.TutorUtils.Modules.questions import QuestionSuite, Question
-from AITutor_Backend.src.TutorUtils.Modules.slides import SlidePlanner, Slide, Purpose
-
-from asgiref.sync import sync_to_async, async_to_sync
 import uuid
+
+from asgiref.sync import async_to_sync, sync_to_async
+from django.test import TestCase
+
+from AITutor_Backend.models import (ChatHistoryModel, ConceptDatabaseModel,
+                                    ConceptModel, DatabaseManager,
+                                    NotebankModel, QuestionModel,
+                                    QuestionSuiteModel, SessionModel,
+                                    SlideModel, SlidePlannerModel,
+                                    TutorEnvModel)
+from AITutor_Backend.src.TutorUtils.concepts import Concept, ConceptDatabase
+from AITutor_Backend.src.TutorUtils.Modules.questions import (Question,
+                                                              QuestionSuite)
+from AITutor_Backend.src.TutorUtils.Modules.slides import (Purpose, Slide,
+                                                           SlidePlanner)
+
 
 class DatabaseManagerTestCase(TestCase):
     def setUp(self):
@@ -38,7 +47,7 @@ class DatabaseManagerTestCase(TestCase):
         slide_planner.current_obj_idx = 0
         # Add question suite and questions
         qs = QuestionSuite(num_questions=1, Notebank=self.db_manager.tutor_env.notebank, ConceptDatabase=self.db_manager.tutor_env.concept_database)
-        q1 = Question(Question.Subject.MATH, Question.Type.TEXT_ENTRY, {"data": "Sample math question"}, [c1, c2])
+        q1 = Question(Question.Subject.MATH, Question.Type.TEXT_ENTRY, "do math", {"data": "Sample math question"}, [c1, c2])
         qs.Questions.append(q1)
         self.db_manager.tutor_env.question_suite = qs
         self.db_manager.tutor_env.slide_planner = slide_planner
@@ -76,7 +85,7 @@ class DatabaseManagerTestCase(TestCase):
         self.db_manager.tutor_env.slide_planner.num_slides = 2
 
         # Modify question suite and add new questions
-        q2 = Question(Question.Subject.CODE, Question.Type.CODE_ENTRY, {"data": "Sample coding question"}, [c3])
+        q2 = Question(Question.Subject.CODE, Question.Type.CODE_ENTRY, "some instructions", {"data": "Sample coding question"}, [c3,])
         self.db_manager.tutor_env.question_suite.Questions.append(q2)
         self.db_manager.tutor_env.question_suite.num_questions = 2
         self.db_manager.tutor_env.question_suite.current_obj_idx = 1 # Update param field

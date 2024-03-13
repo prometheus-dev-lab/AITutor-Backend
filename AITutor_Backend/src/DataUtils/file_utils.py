@@ -1,7 +1,9 @@
-from pptx import Presentation
+import datetime
 import glob
 import os
-import datetime
+
+from pptx import Presentation
+
 
 def read_pptx_file(pptx_file):
     content = ''

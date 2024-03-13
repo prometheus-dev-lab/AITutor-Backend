@@ -1,7 +1,8 @@
-import requests
 import mwparserfromhell
-import wikipedia
 import numpy as np
+import requests
+import wikipedia
+
 
 def get_wikidata_from_title(title: str,): 
     try:    

@@ -1,5 +1,7 @@
 import unittest
+
 from AITutor_Backend.src.TutorUtils.notebank import *
+
 
 class NotebankTests(unittest.TestCase):
     def test_notebank_creation_and_modification(self,):

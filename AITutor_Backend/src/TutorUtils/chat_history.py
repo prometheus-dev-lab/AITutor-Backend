@@ -1,6 +1,8 @@
-from AITutor_Backend.src.BackendUtils.sql_serialize import *
-from AITutor_Backend.src.BackendUtils.json_serialize import *
 from collections import deque
+
+from AITutor_Backend.src.BackendUtils.json_serialize import *
+from AITutor_Backend.src.BackendUtils.sql_serialize import *
+
 
 class ChatHistory(SQLSerializable, JSONSerializable):
         def __init__(self,):

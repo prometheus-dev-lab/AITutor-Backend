@@ -1,0 +1,21 @@
+## Subject Requirements
+The question provided has been selected to be a Literature Question. Literature questions will need instructions, and a passage topic.
+
+The description of the question has already been provided for you.
+
+Based on the instructions you will create both a Boilerplate Code and Test Cases.
+
+**Requirements:**
+- Boilerplate code should include the function and some basic examples of how the function should be called. This will be embeded into the user's program space for them to modify and write their logic into.
+
+- Test Cases should be equality checking statements with the function call's return value and the expected return value. They should return either True or False. When ran, the Test Case Script should contain outputs of either True of False.
+
+Here are some example Descriptions and their respective Question Generation Process'.
+
+Example 1:
+
+**Description:** Student will Read the provided non-fiction passage about self-driving cars and respond to a provided reading comprehension question.
+
+// Output:
+
+## Reading Passage: What is an Autonomous Car?

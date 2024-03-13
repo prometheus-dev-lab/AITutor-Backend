@@ -1,11 +1,12 @@
 import json
 import uuid
-from django.http import JsonResponse, HttpResponseBadRequest
-from asgiref.sync import sync_to_async
+
+from asgiref.sync import async_to_sync, sync_to_async
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from asgiref.sync import sync_to_async, async_to_sync
+
 from AITutor_Backend.models import DatabaseManager
-import uuid
+
 
 def make_error_response(error_msg, sid, status=405):
     return JsonResponse(

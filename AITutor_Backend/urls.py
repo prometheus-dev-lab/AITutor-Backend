@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+
 import AITutor_Backend.views as views
 
 urlpatterns = [

@@ -1,5 +1,5 @@
-from AITutor_Backend.src.TutorUtils.prompts import *
 from AITutor_Backend.src.tutor_env import TutorEnv
+from AITutor_Backend.src.TutorUtils.prompts import *
 
 notebank = NoteBank()
 chat_history = ChatHistory()

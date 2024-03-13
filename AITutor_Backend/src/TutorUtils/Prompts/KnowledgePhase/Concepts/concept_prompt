@@ -3,6 +3,8 @@ Concept Generation Process:
 ## Documentation
 The Concept is encapsulated into data structure that will help us educate your student. The action you will be partaking in is creating concepts. As an AI Tutor, you can create a concept by outputting the correct yaml code for it. 
 
+The environment contains observations which provide context for some aspect you are currently working on.
+
 ## Data Structure
 ```yaml
 Concept:
@@ -28,7 +30,7 @@ Here are examples of outputs for this task:
 Output the correct Concept Generation Process for:
 Concept.Name = "Breadth-First Search":
 
-Definition: graph Algorithm used to iterate through a connection depth to find some tsarget node. It does this by using a Queue of nodes which for each node explored, all of that nodes neighbors are then added to the queue. This way each node is explored in the order it was discovered. 
+Definition: graph Algorithm used to iterate through a connection depth to find some tsarget node. It does this by using a Queue of nodes which for each node explored, all of that nodes neighbors are then added to the queue. Thiyou are currently trying to generate; see above about what a Concept can be considered as. Defines way each node is explored in the order it was discovered. 
 
 Related Ideas: search, graph node, depth, iteration, neighbor, queue, graph, algorithm, tree
 YAML Code:
