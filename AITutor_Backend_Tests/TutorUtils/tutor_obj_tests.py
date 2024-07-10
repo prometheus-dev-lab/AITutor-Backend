@@ -1,12 +1,20 @@
+import os
 import json
 import unittest
-from unittest.mock import patch
 
-from AITutor_Backend.src.TutorUtils.tutor_objs import (Chapter, Concept,
-                                                       ConceptDatabase, Lesson,
-                                                       NoteBank,
-                                                       TutorObjLLMAPI,
-                                                       TutorObjManager)
+
+from AITutor_Backend.src.TutorUtils.tutor_objs import (
+    Chapter,
+    Concept,
+    ConceptDatabase,
+    Lesson,
+    NoteBank,
+    TutorObjPrompts,
+    TutorObjManager,
+)
+
+GENERATE_DATA = bool(os.environ.get("GENERATE_TESTS", 0))
+
 
 c1 = Concept("Concept 1", None)
 c2 = Concept("Concept 2", None)
@@ -39,6 +47,7 @@ in agent AI and any particular agent types or applications they want to learn ab
 {"index": 21, "note": "Tutor should gauge student's current understanding of agent AI concepts to create a targeted learning plan."}
 {"index": 22, "note": "Tutor should document their responses and preferences in the Notebank for future reference."}]}"""
 
+
 class TutorObjManagerTests(unittest.TestCase):
     def setUp(self):
         self.notebank = NoteBank()
@@ -46,29 +55,41 @@ class TutorObjManagerTests(unittest.TestCase):
         self.tutor_obj_manager = TutorObjManager(self.notebank, self.concept_database)
 
     def test_initialization(self):
-        self.assertIsInstance(self.tutor_obj_manager.llm_api, TutorObjLLMAPI)
+        self.assertIsInstance(self.tutor_obj_manager.llm_prompts, TutorObjPrompts)
         self.assertEqual(self.tutor_obj_manager.Chapters, [])
         self.assertEqual(self.tutor_obj_manager.num_chapters, 0)
-        self.assertFalse(self.tutor_obj_manager.initialized)
+        self.assertFalse(self.tutor_obj_manager.initialized())
 
-    def test_creation(self,):
-        #TODO: Generation Tests
+    def test_creation(
+        self,
+    ):
+        if not GENERATE_DATA:
+            return
+        # TODO: Generation Tests
         notebank = NoteBank()
         j_data = json.loads(tutor_plan)
+
         [notebank.add_note(note["note"]) for note in j_data["Notebank"]]
+
         cd = ConceptDatabase("Agent AI", tutor_plan)
         cd.generate_concept_graph()
+
         tutor_obj_manager = TutorObjManager(notebank, cd)
         tutor_obj_manager.generate_chapters()
-        self.assertIsNotNone( tutor_obj_manager.Chapters, "Could not generate chapters.")
-        self.assertGreater(len((tutor_obj_manager.Chapters)), 0, "Could not create any Chapters.")
+
+        self.assertIsNotNone(tutor_obj_manager.Chapters, "Could not generate chapters.")
+        self.assertGreater(
+            len((tutor_obj_manager.Chapters)), 0, "Could not create any Chapters."
+        )
         self.assertIsInstance(tutor_obj_manager.Chapters[0], Chapter)
         tutor_obj_manager.generate_modules(0)
-        print(0)
+
 
 class ChapterTests(unittest.TestCase):
     def test_chapter_initialization(self):
-        chapter = Chapter("Test Chapter", "Overview", ["Outcome 1", "Outcome 2"], [c1, c2])
+        chapter = Chapter(
+            "Test Chapter", "Overview", ["Outcome 1", "Outcome 2"], [c1, c2]
+        )
         self.assertEqual(chapter.title, "Test Chapter")
         self.assertEqual(chapter.overview, "Overview")
         self.assertEqual(chapter.outcomes, ["Outcome 1", "Outcome 2"])
@@ -82,22 +103,35 @@ class ChapterTests(unittest.TestCase):
         self.assertIsInstance(chapters[0], Chapter)
         self.assertEqual(chapters[0].title, "Chapter 1")
         self.assertEqual(chapters[0].overview, "Overview 1")
-        self.assertIn("Outcome 1", chapters[0].outcomes,)
+        self.assertIn(
+            "Outcome 1",
+            chapters[0].outcomes,
+        )
         self.assertIn(c1, chapters[0].concepts)
+
     def test_env_string(self):
-        chapter = Chapter("Test Chapter", "Overview", ["Outcome 1", "Outcome 2"], [c1, c2])
+        chapter = Chapter(
+            "Test Chapter", "Overview", ["Outcome 1", "Outcome 2"], [c1, c2]
+        )
         env_string = chapter.env_string()
         print(env_string)
         self.assertIn("Test Chapter", env_string)
         self.assertIn("Overview", env_string)
-        self.assertIn("Outcome 1", env_string)        
+        self.assertIn("Outcome 1", env_string)
         self.assertIn("Concepts:", env_string)
         self.assertIn("Concept 1", env_string)
 
-class LessonTests(unittest.TestCase):
 
+class LessonTests(unittest.TestCase):
     def test_lesson_initialization(self):
-        lesson = Lesson("Test Lesson", "Overview", ["Objective 1", "Objective 2"], [c1, c2])
+        lesson = Lesson(
+            "Test Lesson",
+            "Overview",
+            ["Objective 1", "Objective 2"],
+            [c1, c2],
+            NoteBank.from_sql(tutor_plan),
+            cd,
+        )
         self.assertEqual(lesson.title, "Test Lesson")
         self.assertEqual(lesson.overview, "Overview")
         self.assertEqual(lesson.objectives, ["Objective 1", "Objective 2"])
@@ -105,17 +139,26 @@ class LessonTests(unittest.TestCase):
 
     def test_create_lessons_from_JSON(self):
         llm_output = '{"Lessons": [{"title": "Lesson 1", "overview": "Overview 1", "objectives": ["Objective 1"], "concepts": ["Concept 1"]}, {"title": "Lesson 2", "overview": "Overview 2", "objectives": ["Objective 2"], "concepts": ["Concept 2"]}]}'
-        success, lessons = Lesson.create_lessons_from_JSON(llm_output, cd)
+        success, lessons = Lesson.create_lessons_from_JSON(
+            llm_output, NoteBank.from_sql(tutor_plan), cd
+        )
         self.assertTrue(success)
         self.assertEqual(len(lessons), 2)
         self.assertIsInstance(lessons[0], Lesson)
         self.assertEqual(lessons[0].title, "Lesson 1")
 
     def test_env_string(self):
-        lesson = Lesson("Test Lesson", "Overview", ["Objective 1", "Objective 2"], [c1, c2])
+        lesson = Lesson(
+            "Test Lesson",
+            "Overview",
+            ["Objective 1", "Objective 2"],
+            [c1, c2],
+            NoteBank.from_sql(tutor_plan),
+            cd,
+        )
         env_string = lesson.env_string()
         self.assertIn("Test Lesson", env_string)
         self.assertIn("Overview", env_string)
-        self.assertIn("Objective 1", env_string)        
+        self.assertIn("Objective 1", env_string)
         self.assertIn("Concepts:", env_string)
         self.assertIn("Concept 1", env_string)

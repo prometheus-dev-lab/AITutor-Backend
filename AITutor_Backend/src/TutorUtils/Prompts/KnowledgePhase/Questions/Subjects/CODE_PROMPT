@@ -1,20 +1,16 @@
 ## Subject Requirements
 The question provided has been selected to be a Coding Question. Coding questions will need instructions, a provided boilerplate/template, and test cases based off of the description we provide. 
 
-The description of the question has already been provided for you.
-
 Based on your instructions you will create both a Boilerplate Code and Test Cases.
 
 **Requirements:**
-- Instructions should provide enough detail for completing the coding problem. Using markdown, this should include an objective, the function signature, the input, the output, and the constraints put onto the input.
+- `Instructions` should provide enough detail for completing the coding problem. Using markdown, this should include an objective, the function signature, the input, the output, and the constraints put onto the input.
 
-- Boilerplate code should include the function and some basic examples of how the function should be called. This will be embeded into the user's program space for them to modify and write their logic into.
+- `Boilerplate` code should include the function and some basic examples of how the function should be called. This will be embeded into the user's program space for them to modify and write their logic into.
 
-- Test Cases should be equality checking statements with the function call's return value and the expected return value. They should return either True or False. When ran, the Test Case Script should contain outputs of either True of False.
+- `Test Case Script` should be equality checking statements with the function call's return value and the expected return value. They should return either True or False. When ran, the Test Case Script should contain outputs of values True of False.
 
-Here are an example Description and the respective Question Generation Process.
-
-Example:
+## Example Input: this is the optimal path problem as input
 
 **Description:** Optimal Path in a Grid
 
@@ -29,7 +25,7 @@ Concepts Tested:
 Hint for Approach:
 Consider the subproblem of finding the optimal path to each cell. The value of the current cell depends on the maximum of the two cells from which it can be reached (above or left).
 
-// Output:
+## Example Output: for the optimal path problem
 
 ### Instructions for "Optimal Path in a Grid"
 

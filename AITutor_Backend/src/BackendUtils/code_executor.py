@@ -42,7 +42,7 @@ class CodeExecutor:
         finally:
             # Restore the original import
             builtins.__import__ = self.original_import
-            self.__exec_finished = True 
+            self.__exec_finished = True
 
     def execute_code_thread(self, code):
         thread = threading.Thread(target=self.execute_code, args=(code,))
@@ -50,7 +50,7 @@ class CodeExecutor:
 
     def exec_finished(self):
         return self.__exec_finished
-    
+
     def success(self):
         return not self.__error_exec and self.__exec_finished
 
@@ -77,7 +77,5 @@ class CodeExecutor:
             return False
 
     def get_code(self, file_path):
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             return file.read()
-
-

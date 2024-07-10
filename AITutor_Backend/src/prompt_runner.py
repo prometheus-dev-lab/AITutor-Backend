@@ -46,4 +46,3 @@ while True:
         break
 
 print(tutor.concept_database.Concepts)
-print(tutor.question_suite.Questions)

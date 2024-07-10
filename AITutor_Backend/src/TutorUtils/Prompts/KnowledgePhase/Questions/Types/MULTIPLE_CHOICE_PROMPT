@@ -1,15 +1,14 @@
 ## Type Requirements
 The question provided has been selected to be a Multiple Choice Question. Multiple Choice questions will need potential answers, and also a correct entry. Multiple Choice questions should be as tricky and academic as possible. 
 
-Based on the instructions you created, you will create a rubric out of 5 possible points to grade a response to the question. 
+Based on the instructions you created, you will create the Entries, and then indicate the correct entry as well.
 
 **Requirements:**
-- Multiple Choice 'Entries' which allow the student 
-- 
-Here are an example Instructions and the respective Question Generation Process.
+ - Multiple Choice 'Entries'
+ - Correct Entry 
 
 #### Example 1: Generative AI and Creative Industries
-**Instructions:** Which of the following best represents the impact of generative AI on creative industries?
+**Instructions:** Select the best Answer. Which of the following best represents the impact of generative AI on creative industries?
 
 **Entry 1:** Generative AI primarily reduces job opportunities in creative industries by automating creative tasks.
 **Entry 2:** Generative AI has no significant impact on creative industries as it cannot replicate human creativity.
@@ -67,27 +66,6 @@ Here are an example Instructions and the respective Question Generation Process.
  "entry_2": "State rights, slavery, and economic conflicts between the North and South.",
  "entry_3": "International politics, industrial revolution, and religious conflicts.",
  "entry_4": "Territorial expansion, colonialism, and the abolition movement.",
- "correct_entry": "entry_2"
-}
-```
-
-#### Example 4: Autonomous Vehicles
-**Instructions:** Which of the following best describes both the potential benefits and challenges of autonomous vehicles?
-
-**Entry 1:** They reduce traffic congestion but struggle with ethical decision-making.
-**Entry 2:** They offer improved safety but may lead to increased vehicle dependency.
-**Entry 3:** They are environmentally friendly but can only operate in clear weather conditions.
-**Entry 4:** They ensure absolute privacy but are prone to frequent technical failures.
-**Correct Entry:** Entry 2
-
-**JSON Translation:**
-```json
-{
- "instructions": "Which of the following best describes both the potential benefits and challenges of autonomous vehicles?",
- "entry_1": "They reduce traffic congestion but struggle with ethical decision-making.",
- "entry_2": "They offer improved safety but may lead to increased vehicle dependency.",
- "entry_3": "They are environmentally friendly but can only operate in clear weather conditions.",
- "entry_4": "They ensure absolute privacy but are prone to frequent technical failures.",
  "correct_entry": "entry_2"
 }
 ```

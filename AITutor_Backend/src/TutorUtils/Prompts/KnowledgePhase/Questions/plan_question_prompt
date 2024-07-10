@@ -9,21 +9,21 @@ The environment contains observations which provide context for some aspect you 
 Here is the Data Structure you will be constructing in the future creation phase. Right now, you will be planning a question you will be creating. Remember, this will be a single question. Here is some python code which describes the Question Structure:
 
 ```python
-    class Subject(IntEnum):
-        MATH=0
-        CODE=1
-        LITERATURE=2
-        CONCEPTUAL=3
-    
-    class Type(IntEnum):
-        TEXT_ENTRY=0
-        MULTIPLE_CHOICE=1
-        CALCULATION_ENTRY=2
-        CODE_ENTRY=3
-    
-    class Question:
-      def __init__(q_subject:Subject, q_type:type, q_data:str, q_concepts:List[str]):
-        self.subject, self.type, self.data, self. = q_subject, q_type, q_data, q_concepts
+class Subject(IntEnum):
+    MATH=0
+    CODE=1
+    LITERATURE=2
+    CONCEPTUAL=3
+
+class Type(IntEnum):
+    TEXT_ENTRY=0
+    MULTIPLE_CHOICE=1
+    CALCULATION_ENTRY=2
+    CODE_ENTRY=3
+
+class Question:
+  def __init__(q_subject:Subject, q_type:type, q_data:str, q_concepts:List[str]):
+    self.subject, self.type, self.data, self. = q_subject, q_type, q_data, q_concepts
 ```
 
 A Question should be meticuously planned in the following manner:

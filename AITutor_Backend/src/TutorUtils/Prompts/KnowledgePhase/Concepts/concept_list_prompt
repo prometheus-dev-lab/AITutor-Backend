@@ -258,7 +258,7 @@ Exploration of Java in Different Domains
 
 With the correct JSON Object:
 ```json
-{"concep_list": [
+{"concept_list": [
     "Java Programming",
     "Basic Java Syntax",
     "Data Types and Variables in Java",

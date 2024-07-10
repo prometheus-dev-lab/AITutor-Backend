@@ -31,7 +31,10 @@ Each Lesson should include:
 $ENV.NOTEBANK_STATE$
 </Notebank>
 
-- **Main Concept**: $ENV.MAIN_CONCEPT$
+- **Concept Graph**:
+<ConceptGraph>
+$ENV.CONCEPTS$
+</ConceptGraph>
 
 - **Previous Chapter**: 
 <Chapter>

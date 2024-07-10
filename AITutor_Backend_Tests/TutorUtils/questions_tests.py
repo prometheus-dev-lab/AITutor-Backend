@@ -5,8 +5,7 @@ import unittest
 GENERATE_DATA = bool(os.environ.get("GENERATE_TESTS", 0))
 
 from AITutor_Backend.src.TutorUtils.concepts import Concept, ConceptDatabase
-from AITutor_Backend.src.TutorUtils.Modules.questions import (Question,
-                                                              QuestionSuite)
+from AITutor_Backend.src.TutorUtils.Modules.questions import Question, QuestionSuite
 from AITutor_Backend.src.TutorUtils.notebank import NoteBank
 
 agent_ai_notes = """User expresses interest in learning about agent AI.
@@ -38,42 +37,90 @@ Tutor should document their responses and preferences in the Notebank for future
 
 # Defining the concepts in the SubTree
 concept_data = [
-    ("Regular Expression", None, 
-     "A sequence of characters that form a search pattern, often used for string matching and manipulation.",
-     "", None),
-    ("Text normalization", "Regular Expression", 
-     "Process of transforming text into a more consistent format, often used in conjunction with Regular Expression.",
-     "", ""),
-    ("Expression Patterns", "Regular Expression", 
-     "Specific patterns used within a Regular Expression, including Concatenation, Disjunction, etc.", 
-     "", ""),
-    ("Concatenation", "Expression Patterns", 
-     "A type of Expression Pattern where two strings are joined end-to-end.", 
-     "", ""),
-    ("Disjunction", "Expression Patterns", 
-     "A type of Expression Pattern representing a choice between alternatives.", 
-     "", ""),
-    ("Range", "Expression Patterns", 
-     "A Expression Pattern that specifies a range of characters to match.", 
-     "", ""),
-    ("Kleene", "Expression Patterns", 
-     "A Expression Pattern indicating zero or more occurrences of the previous element.", 
-     "", ""),
-    ("Anchors", "Expression Patterns", 
-     "Special Expression Patterns that assert a position within the text.", 
-     "", ""),
-    ("Counters", "Regular Expression", 
-     "Quantifiers in a Regular Expression that specify how many times a component should occur.", 
-     "", ""),
-    ("Precedence", "Regular Expression", 
-     "The order in which operations in a Regular Expression are carried out.", 
-     "", ""),
-    ("Substitution", "Regular Expression", 
-     "Replacing text in a string that matches a Regular Expression.", 
-     "", ""),
-    ("Lookahead Assertions", "Regular Expression", 
-     "Conditional Expression Patterns in a Regular Expression that look ahead in the text.", 
-     "", "")
+    (
+        "Regular Expression",
+        None,
+        "A sequence of characters that form a search pattern, often used for string matching and manipulation.",
+        "",
+        None,
+    ),
+    (
+        "Text normalization",
+        "Regular Expression",
+        "Process of transforming text into a more consistent format, often used in conjunction with Regular Expression.",
+        "",
+        "",
+    ),
+    (
+        "Expression Patterns",
+        "Regular Expression",
+        "Specific patterns used within a Regular Expression, including Concatenation, Disjunction, etc.",
+        "",
+        "",
+    ),
+    (
+        "Concatenation",
+        "Expression Patterns",
+        "A type of Expression Pattern where two strings are joined end-to-end.",
+        "",
+        "",
+    ),
+    (
+        "Disjunction",
+        "Expression Patterns",
+        "A type of Expression Pattern representing a choice between alternatives.",
+        "",
+        "",
+    ),
+    (
+        "Range",
+        "Expression Patterns",
+        "A Expression Pattern that specifies a range of characters to match.",
+        "",
+        "",
+    ),
+    (
+        "Kleene",
+        "Expression Patterns",
+        "A Expression Pattern indicating zero or more occurrences of the previous element.",
+        "",
+        "",
+    ),
+    (
+        "Anchors",
+        "Expression Patterns",
+        "Special Expression Patterns that assert a position within the text.",
+        "",
+        "",
+    ),
+    (
+        "Counters",
+        "Regular Expression",
+        "Quantifiers in a Regular Expression that specify how many times a component should occur.",
+        "",
+        "",
+    ),
+    (
+        "Precedence",
+        "Regular Expression",
+        "The order in which operations in a Regular Expression are carried out.",
+        "",
+        "",
+    ),
+    (
+        "Substitution",
+        "Regular Expression",
+        "Replacing text in a string that matches a Regular Expression.",
+        "",
+        "",
+    ),
+    (
+        "Lookahead Assertions",
+        "Regular Expression",
+        "Conditional Expression Patterns in a Regular Expression that look ahead in the text.",
+        "",
+        "",
+    ),
 ]
 
 regex_notes = """User expresses interest in learning about regular expressions.
@@ -99,10 +146,13 @@ Student Questions Statement: I would like to tackle programming questions, text 
 """
 cd = ConceptDatabase.from_sql("Regular Expressions", regex_notes, concept_data)
 
+
 class QuestionSuiteTests(unittest.TestCase):
     def setUp(self):
         self.notebank = NoteBank()
-        self.concept_db = ConceptDatabase("Test Concept 1", )
+        self.concept_db = ConceptDatabase(
+            "Test Concept 1",
+        )
         self.concept_db.Concepts.append(Concept("Test Concept 1", ""))
         self.concept_db.Concepts.append(Concept("Test Concept 2", ""))
         self.concept_db.Concepts.append(Concept("Test Concept 3", ""))
@@ -110,10 +160,15 @@ class QuestionSuiteTests(unittest.TestCase):
         self.question_suite = QuestionSuite(5, self.notebank, self.concept_db)
 
     def test_initialization(self):
-        self.assertEqual(len(self.question_suite.Questions), 0, "Initial question list should be empty")
+        self.assertEqual(
+            len(self.question_suite.Questions),
+            0,
+            "Initial question list should be empty",
+        )
 
     def test_generate_example_questions(self):
-        # if not GENERATE_DATA: return
+        if not GENERATE_DATA:
+            return
         # return # TODO: Integrate Generation Testing on GH Actions
         notebank = NoteBank()
         [notebank.add_note(note) for note in regex_notes.split("\n")]
@@ -121,33 +176,77 @@ class QuestionSuiteTests(unittest.TestCase):
         cd.generate_concept_graph()
         q_suite = QuestionSuite(10, notebank, cd)
         q_suite.generate_question_data()
-        self.assertEqual(len(q_suite.Questions), 10, "QuestionSuite should generate specified number of questions")
+        self.assertEqual(
+            len(q_suite.Questions),
+            10,
+            "QuestionSuite should generate specified number of questions",
+        )
 
     def test_generate_and_env_string_format(self):
-        if not GENERATE_DATA: return         
+        if not GENERATE_DATA:
+            return
         q_suite = QuestionSuite(5, self.notebank, cd)
         q_suite.generate_question_data()
         env_string = q_suite.env_string()
-        self.assertEqual(len(q_suite.Questions), 5, "Failed at properly generating 5 questions for the Question Suite")
+        self.assertEqual(
+            len(q_suite.Questions),
+            5,
+            "Failed at properly generating 5 questions for the Question Suite",
+        )
         self.assertIsInstance(env_string, str, "Environment string should be a string")
 
     def test_to_sql_and_from_sql(self):
         q_suite = QuestionSuite(3, self.notebank, self.concept_db)
-        q_suite.Questions = [Question(i, i, "some instructions", {"test": 42, "test2": "this is test data"}, [self.concept_db.get_concept(f"Test Concept {i+1}")]) for i in range(4)]
+        q_suite.Questions = [
+            Question(
+                i,
+                i,
+                "some instructions",
+                {"test": 42, "test2": "this is test data"},
+                [self.concept_db.get_concept(f"Test Concept {i+1}")],
+            )
+            for i in range(4)
+        ]
         sql_data = q_suite.to_sql()
-        new_question_suite = QuestionSuite.from_sql(sql_data[0], sql_data[1], sql_data[2], self.notebank, self.concept_db)
-        self.assertEqual(len(new_question_suite.Questions), 4, "from_sql should correctly reconstruct the question suite")
+        new_question_suite = QuestionSuite.from_sql(
+            sql_data[0], sql_data[1], sql_data[2], self.notebank, self.concept_db
+        )
+        self.assertEqual(
+            len(new_question_suite.Questions),
+            4,
+            "from_sql should correctly reconstruct the question suite",
+        )
         for i in range(4):
-            self.assertEqual(i, q_suite.Questions[i].subject, "Error in saving SQL Data, Question Subject's failed to permeate.")
-            self.assertEqual(i, q_suite.Questions[i].type, "Error in saving SQL Data, Question Type's failed to permeate.")
-            self.assertTrue("test" in q_suite.Questions[i].data and 42 == q_suite.Questions[i].data["test"]), "Invalid SQL save for Qustion."
-            self.assertTrue("test2" in q_suite.Questions[i].data and "this is test data" == q_suite.Questions[i].data["test2"]), "Invalid SQL save for Qustion."
-            self.assertEqual(q_suite.Questions[i].concepts[0].name, f"Test Concept {i+1}","Failed to find names Equal, check CDB or SQL Concept Name storage.")
-            
+            self.assertEqual(
+                i,
+                q_suite.Questions[i].subject,
+                "Error in saving SQL Data, Question Subject's failed to permeate.",
+            )
+            self.assertEqual(
+                i,
+                q_suite.Questions[i].type,
+                "Error in saving SQL Data, Question Type's failed to permeate.",
+            )
+            self.assertTrue(
+                "test" in q_suite.Questions[i].data
+                and 42 == q_suite.Questions[i].data["test"]
+            ), "Invalid SQL save for Qustion."
+            self.assertTrue(
+                "test2" in q_suite.Questions[i].data
+                and "this is test data" == q_suite.Questions[i].data["test2"]
+            ), "Invalid SQL save for Qustion."
+            self.assertEqual(
+                q_suite.Questions[i].concepts[0].name,
+                f"Test Concept {i+1}",
+                "Failed to find names Equal, check CDB or SQL Concept Name storage.",
+            )
+
 
 class QuestionTests(unittest.TestCase):
     def setUp(self):
-        self.concept_db = ConceptDatabase("Test Concept 1", )
+        self.concept_db = ConceptDatabase(
+            "Test Concept 1",
+        )
         self.concept = Concept("Test Concept 1", "")
         self.concept_db.Concepts.append(self.concept)
         self.question_data = {
@@ -157,83 +256,164 @@ class QuestionTests(unittest.TestCase):
             "entry1": "abcd",
             "entry2": "efg",
             "correct_entry": "entry2",
-            "concepts": ["Test Concept 1"]
+            "concepts": ["Test Concept 1"],
         }
-        self.question = Question(Question.Subject.MATH, Question.Type.MULTIPLE_CHOICE, "some instructions", self.question_data, [self.concept])
+        self.question = Question(
+            Question.Subject.MATH,
+            Question.Type.MULTIPLE_CHOICE,
+            "some instructions",
+            self.question_data,
+            [self.concept],
+        )
 
     def test_create_question_from_json(self):
         # Math Multiple Choice:
         json_output = """```json{"subject": 0, "type": 1, "data": "some fun question about derivitives?", "entry1":"a", "entry2": "b", "correct_entry": "entry1", "latex_code": "\\frac{d}{dx}", "concepts": ["Test Concept 1"]}```"""
         question = Question.create_question_from_JSON(json_output, self.concept_db)
-        self.assertIsNotNone(question, "Question creation from JSON should be successful")
-        self.assertEqual( question.data["data"], "some fun question about derivitives?", "Error parsing LLM output for question data parameter.")
-        self.assertEqual( question.data["entry2"], "b", "Error parsing LLM output for entry parameter.")
-        
+        self.assertIsNotNone(
+            question, "Question creation from JSON should be successful"
+        )
+        self.assertEqual(
+            question.data["data"],
+            "some fun question about derivitives?",
+            "Error parsing LLM output for question data parameter.",
+        )
+        self.assertEqual(
+            question.data["entry2"],
+            "b",
+            "Error parsing LLM output for entry parameter.",
+        )
+
         # Literature Text Entry:
         json_output = """```json{"subject": 2, "type": 0, "data": "some fun question about star wars?","reading_passage":"A long long time ago, there was a galaxy far far away", "rubric": "[5 points] student exhibits a love for star wars", "concepts": ["Test Concept 1"]}```"""
         question = Question.create_question_from_JSON(json_output, self.concept_db)
-        self.assertIsNotNone(question, "Question creation from JSON should be successful")
-        self.assertEqual( question.data["reading_passage"], "A long long time ago, there was a galaxy far far away", "Error parsing LLM output for question data parameter.")
-        self.assertEqual( question.data["rubric"], "[5 points] student exhibits a love for star wars", "Error parsing LLM output for rubric parameter.")
+        self.assertIsNotNone(
+            question, "Question creation from JSON should be successful"
+        )
+        self.assertEqual(
+            question.data["reading_passage"],
+            "A long long time ago, there was a galaxy far far away",
+            "Error parsing LLM output for question data parameter.",
+        )
+        self.assertEqual(
+            question.data["rubric"],
+            "[5 points] student exhibits a love for star wars",
+            "Error parsing LLM output for rubric parameter.",
+        )
         # Coding Question:
         json_output = """```json{"subject": 1, "type": 3, "data": "some fun question about BFS?", "test_cases_script":"print(\'Hello World\')", "concepts": ["Test Concept 1"]}```"""
         question = Question.create_question_from_JSON(json_output, self.concept_db)
-        self.assertIsNotNone(question, "Question creation from JSON should be successful")
-        self.assertEqual( question.data["data"], "some fun question about BFS?", "Error parsing LLM output for question data parameter.")
-        self.assertEqual( question.data["test_cases_script"], "print(\'Hello World\')", "Error parsing LLM output for test_cases_script parameter.")
-        
+        self.assertIsNotNone(
+            question, "Question creation from JSON should be successful"
+        )
+        self.assertEqual(
+            question.data["data"],
+            "some fun question about BFS?",
+            "Error parsing LLM output for question data parameter.",
+        )
+        self.assertEqual(
+            question.data["test_cases_script"],
+            "print('Hello World')",
+            "Error parsing LLM output for test_cases_script parameter.",
+        )
+
         # Calculation Question:
         json_output = """```json{"subject": 0, "type": 2, "data": "some math thing add 5 and 7.", "calculation_script":"print(5+7)", "latex_code": "5+7", "concepts": ["Test Concept 1"]}```"""
         question = Question.create_question_from_JSON(json_output, self.concept_db)
-        self.assertIsNotNone(question, "Question creation from JSON should be successful")
-        self.assertEqual(question.data["data"], "some math thing add 5 and 7.", "Error parsing LLM output for question data parameter.")
-        self.assertEqual(question.data["calculation_script"], "print(5+7)", "Error parsing LLM output for calculation_script parameter.")
-        
+        self.assertIsNotNone(
+            question, "Question creation from JSON should be successful"
+        )
+        self.assertEqual(
+            question.data["data"],
+            "some math thing add 5 and 7.",
+            "Error parsing LLM output for question data parameter.",
+        )
+        self.assertEqual(
+            question.data["calculation_script"],
+            "print(5+7)",
+            "Error parsing LLM output for calculation_script parameter.",
+        )
+
         # Test Case: Math Multiple Choice with Incorrect Format
         json_output = """```json{"subject": 0, "type": 1, "data": "A math question?", "latex_code": "f(x)", "entry1":"x", "correct_entry": "entry1", "concepts": ["Test Concept 1"]}```"""
-        with self.assertRaises(AssertionError, msg="Should raise an error due to missing entry2"):
+        with self.assertRaises(
+            AssertionError, msg="Should raise an error due to missing entry2"
+        ):
             Question.create_question_from_JSON(json_output, self.concept_db)
 
         # Test Case: Literature Text Entry with Missing Passage
         json_output = """```json{"subject": 2, "type": 0, "data": "Question about a novel?", "rubric": "[5 points] detailed analysis", "concepts": ["Test Concept 1"]}```"""
-        with self.assertRaises(AssertionError, msg="Should raise an error due to missing reading passage"):
+        with self.assertRaises(
+            AssertionError, msg="Should raise an error due to missing reading passage"
+        ):
             Question.create_question_from_JSON(json_output, self.concept_db)
 
         # Test Case: Code Question with Missing Test Case Script
         json_output = """```json{"subject": 1, "type": 3, "data": "Write a function in Python.", "concepts": ["Test Concept 1"]}```"""
-        with self.assertRaises(AssertionError, msg="Should raise an error due to missing test_cases_script"):
+        with self.assertRaises(
+            AssertionError, msg="Should raise an error due to missing test_cases_script"
+        ):
             Question.create_question_from_JSON(json_output, self.concept_db)
 
         # Test Case: Calculation Question without Calculation Script
         json_output = """```json{"subject": 0, "type": 2, "data": "Calculate 5 * 5.", "latex_code": "5 \\times 5", "concepts": ["Test Concept 1"]}```"""
-        with self.assertRaises(AssertionError, msg="Should raise an error due to missing calculation_script"):
+        with self.assertRaises(
+            AssertionError,
+            msg="Should raise an error due to missing calculation_script",
+        ):
             Question.create_question_from_JSON(json_output, self.concept_db)
 
         # Test Case: Incorrect JSON Format
         json_output = """```json"subject": 1, "type": 2, "data": "Syntax Error.", "concepts": ["Test Concept 1"]}```"""
-        with self.assertRaises(ValueError, msg="Should raise an error due to incorrect JSON format"):
+        with self.assertRaises(
+            ValueError, msg="Should raise an error due to incorrect JSON format"
+        ):
             Question.create_question_from_JSON(json_output, self.concept_db)
 
         # Test Case: Valid Conceptual Question (Multiple Choice)
         json_output = """```json{"subject": 3, "type": 1, "data": "Conceptual question?", "entry1": "Option A", "entry2": "Option B", "correct_entry": "entry1", "concepts": ["Test Concept 1"]}```"""
         question = Question.create_question_from_JSON(json_output, self.concept_db)
-        self.assertIsNotNone(question, "Question creation from JSON should be successful for a valid conceptual question")
-        self.assertEqual(question.data["data"], "Conceptual question?", "Error parsing LLM output for question data parameter.")
-        self.assertEqual(question.data["correct_entry"], "entry1", "Error parsing LLM output for correct_entry parameter.")
+        self.assertIsNotNone(
+            question,
+            "Question creation from JSON should be successful for a valid conceptual question",
+        )
+        self.assertEqual(
+            question.data["data"],
+            "Conceptual question?",
+            "Error parsing LLM output for question data parameter.",
+        )
+        self.assertEqual(
+            question.data["correct_entry"],
+            "entry1",
+            "Error parsing LLM output for correct_entry parameter.",
+        )
 
         # Test Case: Literature Multiple Choice Question
         json_output = """```json{"subject": 2, "type": 1, "data": "Question about a poem?", "entry1": "Option A", "entry2": "Option B", "correct_entry": "entry1", "reading_passage": "Some poem text here", "concepts": ["Test Concept 1"]}```"""
         question = Question.create_question_from_JSON(json_output, self.concept_db)
-        self.assertIsNotNone(question, "Question creation from JSON should be successful for a literature multiple choice question")
-        self.assertEqual(question.data["reading_passage"], "Some poem text here", "Error parsing LLM output for reading_passage parameter.")
-
-
+        self.assertIsNotNone(
+            question,
+            "Question creation from JSON should be successful for a literature multiple choice question",
+        )
+        self.assertEqual(
+            question.data["reading_passage"],
+            "Some poem text here",
+            "Error parsing LLM output for reading_passage parameter.",
+        )
 
     def test_to_sql_and_from_sql(self):
         sql_data = self.question.to_sql()
-        reconstructed_question = Question.from_sql(sql_data[0], sql_data[1], sql_data[2], sql_data[3], [self.concept])
-        self.assertEqual(reconstructed_question.data['data'], "Sample question", "from_sql should correctly reconstruct the question")
+        reconstructed_question = Question.from_sql(
+            sql_data[0], sql_data[1], sql_data[2], sql_data[3], [self.concept]
+        )
+        self.assertEqual(
+            reconstructed_question.data["data"],
+            "Sample question",
+            "from_sql should correctly reconstruct the question",
+        )
 
     def test_format_json(self):
         json_data = self.question.format_json()
-        self.assertTrue(isinstance(json_data, dict), "Formatted JSON should be a dictionary")
+        self.assertTrue(
+            isinstance(json_data, dict), "Formatted JSON should be a dictionary"
+        )

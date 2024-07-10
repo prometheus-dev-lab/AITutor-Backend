@@ -8,4 +8,4 @@ from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
 
 
 class Module:
-    pass # TODO: A module is a Lesson, an Exam, a Quiz, ecetera
+    pass  # TODO: A module is a Lesson, an Exam, a Quiz, ecetera

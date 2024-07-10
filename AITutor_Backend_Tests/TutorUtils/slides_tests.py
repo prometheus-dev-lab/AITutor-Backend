@@ -5,11 +5,12 @@ import unittest
 
 GENERATE_DATA = bool(os.environ.get("GENERATE_TESTS", 0))
 
-from AITutor_Backend.src.TutorUtils.Modules.slides import (Concept,
-                                                           ConceptDatabase,
-                                                           Purpose, Slide,
-                                                           SlidePlan,
-                                                           SlidePlanner)
+from AITutor_Backend.src.TutorUtils.Modules.slides import (
+    Concept,
+    ConceptDatabase,
+    Slide,
+    SlidePlanner,
+)
 from AITutor_Backend.src.TutorUtils.notebank import NoteBank
 
 agent_ai_notes = """User expresses interest in learning about agent AI.
@@ -41,42 +42,90 @@ Tutor should document their responses and preferences in the Notebank for future
 
 # Defining the concepts in the SubTree
 concept_data = [
-    ("Regular Expression", None, 
-     "A sequence of characters that form a search pattern, often used for string matching and manipulation.",
-     "", None),
-    ("Text normalization", "Regular Expression", 
-     "Process of transforming text into a more consistent format, often used in conjunction with Regular Expression.",
-     "", ""),
-    ("Expression Patterns", "Regular Expression", 
-     "Specific patterns used within a Regular Expression, including Concatenation, Disjunction, etc.", 
-     "", ""),
-    ("Concatenation", "Expression Patterns", 
-     "A type of Expression Pattern where two strings are joined end-to-end.", 
-     "", ""),
-    ("Disjunction", "Expression Patterns", 
-     "A type of Expression Pattern representing a choice between alternatives.", 
-     "", ""),
-    ("Range", "Expression Patterns", 
-     "A Expression Pattern that specifies a range of characters to match.", 
-     "", ""),
-    ("Kleene", "Expression Patterns", 
-     "A Expression Pattern indicating zero or more occurrences of the previous element.", 
-     "", ""),
-    ("Anchors", "Expression Patterns", 
-     "Special Expression Patterns that assert a position within the text.", 
-     "", ""),
-    ("Counters", "Regular Expression", 
-     "Quantifiers in a Regular Expression that specify how many times a component should occur.", 
-     "", ""),
-    ("Precedence", "Regular Expression", 
-     "The order in which operations in a Regular Expression are carried out.", 
-     "", ""),
-    ("Substitution", "Regular Expression", 
-     "Replacing text in a string that matches a Regular Expression.", 
-     "", ""),
-    ("Lookahead Assertions", "Regular Expression", 
-     "Conditional Expression Patterns in a Regular Expression that look ahead in the text.", 
-     "", "")
+    (
+        "Regular Expression",
+        None,
+        "A sequence of characters that form a search pattern, often used for string matching and manipulation.",
+        "",
+        None,
+    ),
+    (
+        "Text normalization",
+        "Regular Expression",
+        "Process of transforming text into a more consistent format, often used in conjunction with Regular Expression.",
+        "",
+        "",
+    ),
+    (
+        "Expression Patterns",
+        "Regular Expression",
+        "Specific patterns used within a Regular Expression, including Concatenation, Disjunction, etc.",
+        "",
+        "",
+    ),
+    (
+        "Concatenation",
+        "Expression Patterns",
+        "A type of Expression Pattern where two strings are joined end-to-end.",
+        "",
+        "",
+    ),
+    (
+        "Disjunction",
+        "Expression Patterns",
+        "A type of Expression Pattern representing a choice between alternatives.",
+        "",
+        "",
+    ),
+    (
+        "Range",
+        "Expression Patterns",
+        "A Expression Pattern that specifies a range of characters to match.",
+        "",
+        "",
+    ),
+    (
+        "Kleene",
+        "Expression Patterns",
+        "A Expression Pattern indicating zero or more occurrences of the previous element.",
+        "",
+        "",
+    ),
+    (
+        "Anchors",
+        "Expression Patterns",
+        "Special Expression Patterns that assert a position within the text.",
+        "",
+        "",
+    ),
+    (
+        "Counters",
+        "Regular Expression",
+        "Quantifiers in a Regular Expression that specify how many times a component should occur.",
+        "",
+        "",
+    ),
+    (
+        "Precedence",
+        "Regular Expression",
+        "The order in which operations in a Regular Expression are carried out.",
+        "",
+        "",
+    ),
+    (
+        "Substitution",
+        "Regular Expression",
+        "Replacing text in a string that matches a Regular Expression.",
+        "",
+        "",
+    ),
+    (
+        "Lookahead Assertions",
+        "Regular Expression",
+        "Conditional Expression Patterns in a Regular Expression that look ahead in the text.",
+        "",
+        "",
+    ),
 ]
 
 regex_notes = """User expresses interest in learning about regular expressions.
@@ -120,7 +169,8 @@ cd = ConceptDatabase.from_sql("Regular Expressions", regex_notes, concept_data)
 # slide_planner.generate_slide_deque()
 # print("\n\n".join([slide.format_json() for slide in slide_planner.Slides]))
 
-class SlidePlanTests(unittest.TestCase):
+
+class SlideTests(unittest.TestCase):
     def setUp(self):
         # Setup Concept Database for testing
         self.concept_db = ConceptDatabase("Concept 1", "", False)
@@ -128,7 +178,8 @@ class SlidePlanTests(unittest.TestCase):
         self.concept_db.Concepts.append(Concept("Concept 2", "Definition 2"))
 
     def test_generation_slides(self):
-        if not GENERATE_DATA: return
+        if not GENERATE_DATA:
+            return
         notebank = NoteBank()
         [notebank.add_note(n) for n in regex_notes.split("\n")]
         slide_planner = SlidePlanner(notebank, cd)
@@ -138,23 +189,43 @@ class SlidePlanTests(unittest.TestCase):
     def test_create_slideplan_from_valid_json(self):
         llm_output = """```json{"title": "Intro to AI", "purpose": 0, "purpose_statement": "Introducing basic AI concepts", "concepts": ["Concept 1", "Concept 2"]}```"""
         slideplan = SlidePlan.create_slideplan_from_JSON(llm_output, self.concept_db)
-        self.assertIsNotNone(slideplan, "SlidePlan creation from JSON should be successful")
-        self.assertEqual(slideplan.title, "Intro to AI", "Error parsing LLM output for title")
-        self.assertEqual(slideplan.purpose, Purpose.Introductory, "Error parsing LLM output for purpose")
-        self.assertEqual(slideplan.purpose_statement, "Introducing basic AI concepts", "Error parsing LLM output for purpose statement")
-        self.assertEqual(len(slideplan.concepts), 2, "Error parsing LLM output for concepts")
+        self.assertIsNotNone(
+            slideplan, "SlidePlan creation from JSON should be successful"
+        )
+        self.assertEqual(
+            slideplan.title, "Intro to AI", "Error parsing LLM output for title"
+        )
+        self.assertEqual(
+            slideplan.purpose,
+            Purpose.Introductory,
+            "Error parsing LLM output for purpose",
+        )
+        self.assertEqual(
+            slideplan.purpose_statement,
+            "Introducing basic AI concepts",
+            "Error parsing LLM output for purpose statement",
+        )
+        self.assertEqual(
+            len(slideplan.concepts), 2, "Error parsing LLM output for concepts"
+        )
 
     def test_create_slideplan_from_invalid_json(self):
         llm_output = """```json{"title": "Invalid Slide", "purpose": "NotAnEnum", "purpose_statement": "Invalid purpose"}```"""
-        with self.assertRaises(ValueError, msg="Should raise an error due to invalid JSON format"):
+        with self.assertRaises(
+            ValueError, msg="Should raise an error due to invalid JSON format"
+        ):
             SlidePlan.create_slideplan_from_JSON(llm_output, self.concept_db)
 
     def test_create_slideplan_missing_title(self):
         llm_output = """```json{"purpose": 0, "purpose_statement": "Missing title", "concepts": ["Concept 1"]}```"""
-        with self.assertRaises(AssertionError, msg="Should raise an error due to missing title"):
+        with self.assertRaises(
+            AssertionError, msg="Should raise an error due to missing title"
+        ):
             SlidePlan.create_slideplan_from_JSON(llm_output, self.concept_db)
 
     def test_create_slideplan_with_unrecognized_concept(self):
         llm_output = """```json{"title": "Some Slide", "purpose": 1, "purpose_statement": "With unrecognized concept", "concepts": ["Unknown Concept"]}```"""
-        with self.assertRaises(AssertionError, msg="Should raise an error due to unrecognized concept"):
+        with self.assertRaises(
+            AssertionError, msg="Should raise an error due to unrecognized concept"
+        ):
             SlidePlan.create_slideplan_from_JSON(llm_output, self.concept_db)

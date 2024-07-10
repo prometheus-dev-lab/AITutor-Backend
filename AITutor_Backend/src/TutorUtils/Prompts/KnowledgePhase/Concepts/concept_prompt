@@ -1,4 +1,6 @@
-Concept Generation Process:
+<role>
+Take on the role of an expert AI Tutor. 
+</role>
 
 ## Documentation
 The Concept is encapsulated into data structure that will help us educate your student. The action you will be partaking in is creating concepts. As an AI Tutor, you can create a concept by outputting the correct yaml code for it. 
@@ -6,8 +8,8 @@ The Concept is encapsulated into data structure that will help us educate your s
 The environment contains observations which provide context for some aspect you are currently working on.
 
 ## Data Structure
-```yaml
-Concept:
+```datadef
+datatype Concept:
     name: str # the name of a concept
     definition: str # A sequence describing a concept in an academic context
     latex_code: str # A LaTeX representation of a concept containing math or pseudocode e.g. a derivitave would be have latex_code = \frac{d}{dx}

@@ -4,7 +4,9 @@ from AITutor_Backend.src.TutorUtils.notebank import *
 
 
 class NotebankTests(unittest.TestCase):
-    def test_notebank_creation_and_modification(self,):
+    def test_notebank_creation_and_modification(
+        self,
+    ):
         notebank = NoteBank()
         action_1 = """
         ```json
@@ -47,23 +49,35 @@ class NotebankTests(unittest.TestCase):
         ]
         ```
         """
-        
+
         op_suc, err_msg, terminate = notebank.process_llm_action(action_1)
         self.assertTrue(op_suc, f"Error: unsuccessful notebank parse, {err_msg}")
-        self.assertTrue(notebank.size() == 2, f"Error in parsing elements. Expected: 2, Actual: {notebank.size()}")
+        self.assertTrue(
+            notebank.size() == 2,
+            f"Error in parsing elements. Expected: 2, Actual: {notebank.size()}",
+        )
         self.assertFalse(terminate)
 
         op_suc, err_msg, terminate = notebank.process_llm_action(action_2)
         self.assertTrue(op_suc, f"Error: unsuccessful notebank parse, {err_msg}")
-        self.assertTrue(notebank.size() == 3, f"Error in parsing elements. Expected: 3, Actual: {notebank.size()}")
+        self.assertTrue(
+            notebank.size() == 3,
+            f"Error in parsing elements. Expected: 3, Actual: {notebank.size()}",
+        )
 
         prev_size = notebank.size()
         op_suc, err_msg, terminate = notebank.process_llm_action(action_3)
         self.assertFalse(op_suc, "Error: failed to detect bad notebank parse.")
-        self.assertEqual(notebank.size(), prev_size, f"Additional elements added during bad parsing. Expected Size: {prev_size}, Actual Size: {notebank.size()}")
-        
+        self.assertEqual(
+            notebank.size(),
+            prev_size,
+            f"Additional elements added during bad parsing. Expected Size: {prev_size}, Actual Size: {notebank.size()}",
+        )
+
         op_suc, err_msg, terminate = notebank.process_llm_action(action_4)
-        self.assertFalse(op_suc, "Failed to reject bad input (index 10) Index Out of Bounds.")  
-        
+        self.assertFalse(
+            op_suc, "Failed to reject bad input (index 10) Index Out of Bounds."
+        )
+
         op_suc, err_msg, terminate = notebank.process_llm_action(action_5)
-        self.assertTrue(terminate, "Failed to terminate.")  
+        self.assertTrue(terminate, "Failed to terminate.")
