@@ -6,6 +6,7 @@ from enum import IntEnum
 from typing import List, Tuple, Union, Optional
 
 import openai
+import uuid
 
 from AITutor_Backend.src.BackendUtils.env_serialize import EnvSerializable
 from AITutor_Backend.src.BackendUtils.extractors import JSONExtractor
@@ -34,65 +35,66 @@ class Slide(JSONSerializable, SQLSerializable, EnvSerializable):
         title: str,
         content: str,
         dialogue: str,
+        description: str,
         img_caption: Optional[str],
+        ltx_codes: str,
+        purpose: int,
+        purpose_statement: str,
         concepts: List[Concept],
+        id: uuid.UUID = None,
     ):
+        self.id = id or uuid.uuid4()
         self.title = title
-        self.dialogue = dialogue
         self.content = content
+        self.dialogue = dialogue
+        self.description = description
         self.img_caption = img_caption
+        self.ltx_codes = ltx_codes
+        self.purpose = purpose
+        self.purpose_statement = purpose_statement
         self.concepts = concepts
 
     def format_json(self):
         return {
+            "id": str(self.id),
             "title": self.title,
             "content": self.content,
-            "latex_codes": self.latex_codes,
+            "dialogue": self.dialogue,
+            "description": self.description,
+            "img_caption": self.img_caption,
+            "ltx_codes": self.ltx_codes,
+            "purpose": self.purpose,
+            "purpose_statement": self.purpose_statement,
             "concepts": [concept.name for concept in self.concepts],
         }
 
     def env_string(self):
-        return (
-            f"### Slide:\n"
-            + f"\t**Title**: {self.title}"
-            + f"\t**Content**: {self.content}"
-            + f"\t**Dialogue**: {self.dialogue}"
-            + f"\t**Img Caption**: {self.img_caption}"
-            + f"\t**Concepts**: \n{FORMAT_CONCEPTS(self.concepts)}"
+        concepts_str = "\n".join(
+            [f"\t - {c.name}: {c.definition}" for c in self.concepts]
         )
-
-    def to_sql(
-        self,
-    ):  # TODO: Latex Code, [[f"{l[0]}[SPA]{l[1]}"] for l in self.latex_codes]
-        """
-        Returns the Slide Object in SQL Format
-        TODO: Implement Latex Code into Slides
-        """
         return (
-            self.title,
-            self.content,
-            self.dialogue,
-            self.img_caption,
-            [c.name for c in self.concepts],
+            f"### Slide: {self.title}\n"
+            f"**Description**: {self.description}\n"
+            f"**Content**: {self.content}\n"
+            f"**Dialogue**: {self.dialogue}\n"
+            f"**Image Caption**: {self.img_caption or 'N/A'}\n"
+            f"**Purpose**: {self.purpose_statement}\n"
+            f"**Concepts**:\n{concepts_str}"
         )
 
     @staticmethod
-    def from_sql(
-        title,
-        content,
-        dialogue,
-        img_caption,
-        concepts,
-    ):
-        """
-        Builds a slide from SQL Format
-        """
+    def from_dict(data: dict, concept_database):
         return Slide(
-            title,
-            content,
-            dialogue,
-            img_caption,
-            concepts,
+            id=uuid.UUID(data["id"]),
+            title=data["title"],
+            content=data["content"],
+            dialogue=data["dialogue"],
+            description=data["description"],
+            img_caption=data["img_caption"],
+            ltx_codes=data["ltx_codes"],
+            purpose=data["purpose"],
+            purpose_statement=data["purpose_statement"],
+            concepts=[concept_database.get_concept(c) for c in data["concepts"]],
         )
 
 
@@ -109,13 +111,10 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
 
         def __init__(
             self,
-            slide_plan_prompt_file,
-            slide_to_obj_prompt_file,
-            slide_dialogue_prompt_file,
         ):  # Continue obj
 
-            self._slide_plan_prompt = PromptTemplate.from_file(
-                slide_plan_prompt_file,
+            self._slide_plan_prompt = PromptTemplate.from_config(
+                "@planSlides",
                 {
                     "notebank": SlidePlanner.SlidePlanPrompts.NOTEBANK_STATE_DELIMITER,
                     "concepts": SlidePlanner.SlidePlanPrompts.CONCEPTS_DELIMITER,
@@ -125,13 +124,13 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
             )
             """vars: notebank, concepts, chapter, lesson"""
 
-            self._slide_obj_prompt = PromptTemplate.from_file(
-                slide_to_obj_prompt_file, {"slides": "$SLIDES$"}
+            self._slide_obj_prompt = PromptTemplate.from_config(
+                "@objConvertSlides", {"slides": "$SLIDES$"}
             )
             """vars: slides"""
 
-            self._slide_dialogue_prompt = PromptTemplate.from_file(
-                slide_dialogue_prompt_file,
+            self._slide_dialogue_prompt = PromptTemplate.from_config(
+                "@dialogueSlides",
                 {
                     "slide_context": "$SLIDE_CONTEXT$",
                     "title": "$TITLE$",
@@ -147,33 +146,30 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
         self.Notebank = Notebank
         self.ConceptDatabase = _ConceptDatabase
         self.num_slides = 0
-        self.llm_prompts = SlidePlanner.SlidePlanPrompts(
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Slides/slide_plan_prompt",
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Slides/slide_obj_prompt",
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Slides/slide_dialogue_prompt",
-        )  # LLM API for generating slide plans
+        self.llm_prompts = SlidePlanner.SlidePlanPrompts()
 
     def to_sql(self):
-        return (
-            self.num_slides,
-            [slide.to_sql() for slide in self.Slides],
-        )
+        return {
+            "current_obj_idx": self.current_obj_idx,
+            "num_slides": self.num_slides,
+            "slides": [slide.format_json() for slide in self.slides],
+        }
 
     @staticmethod
-    def from_sql(num_slides, slides, notebank, concept_database):
-        slide_planer = SlidePlanner(notebank, concept_database)
-        slide_planer.num_slides = num_slides
-        slide_planer.Slides = [
-            Slide.from_sql(
-                s[0],
-                s[1],
-                s[2],
-                s[3],
-                [concept_database.get_concept(cpt) for cpt in s[4]],
-            )
-            for s in slides
+    def from_sql(data: dict, notebank, concept_database):
+        slides = [
+            Slide.from_dict(slide_data, concept_database)
+            for slide_data in data["slides_data"]
         ]
-        return slide_planer
+
+        slide_planner = SlidePlanner(
+            notebank,
+            concept_database,
+        )
+        slide_planner.slides = slides
+        slide_planner.current_obj_idx = data["current_obj_idx"]
+        slide_planner.num_slides = data["num_slides"]
+        return slide_planner
 
     def format_json(
         self,
@@ -202,7 +198,10 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
         """
         if DEBUG:
             print(f"Generating Slides for {self.ConceptDatabase.main_concept}")
-        notebank_state = self.Notebank.env_string()
+        notebank_state = self.Notebank.generate_context_summary(
+            query=f"Creating questions for Chapter {chapter_data}, Lesson: {lesson_data}",
+            objective=f"Generate a summary of the provided context for creating questions for Chapter {chapter_data}, Lesson: {lesson_data}",
+        )
         while True:
             # Prepare input for LLM
             slides_prompt = self.llm_prompts._slide_plan_prompt.replace(
@@ -217,7 +216,7 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
             )
 
             # Request output from LLM
-            llm_output = LLM("claude-3-opus-20240229").chat_completion(messages)
+            llm_output = LLM("@planSlides").chat_completion(messages)
 
             output_dir = "training_data/slides/slide_plan/"
             save_training_data(output_dir, slides_prompt, llm_output)
@@ -237,7 +236,7 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
                     # with open("translation.txt", "a") as f:
                     #     f.write("TRANSLATION\n")
                     # Try running the obj translation
-                    llm_output = LLM("claude-3-opus-20240229").chat_completion(
+                    llm_output = LLM("@objConvertSlides").chat_completion(
                         messages, max_tokens=4000
                     )
 
@@ -292,8 +291,6 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
                     #     f.write("TRANSLATION_ERROR\n")
 
     def generate_slide_dialogue(self, slide: Slide, index, results, generation_lock):
-        # notebank_state = self.Notebank.env_string()
-
         # Prepare Slide Dialogue Prompt
         slide_dialogue_prompt = self.llm_prompts._slide_dialogue_prompt.replace(
             self._generate_slide_window_context(index),
@@ -312,7 +309,7 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
             # with open("translation.txt", "a") as f:
             #     f.write("TRANSLATION\n")
             # Request output from LLM
-            s_dialogue = LLM("claude-3-opus-20240229").chat_completion(messages)
+            s_dialogue = LLM("@dialogueSlides").chat_completion(messages)
 
             # Attempt to extract then continue with retry on fail
             try:

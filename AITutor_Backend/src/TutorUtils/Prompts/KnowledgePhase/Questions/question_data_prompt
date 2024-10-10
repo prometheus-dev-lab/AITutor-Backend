@@ -1,0 +1,37 @@
+<task>
+You will now generate additional fields for the provided question. You will be provided question data and your asked to use this question skeleton to generate it's specific data based on it's subject and question type.
+
+## Parameters
+Question Data: a question object containing the questions type, subject, and header being displayed to the user.
+
+$SUBJECT_INSTRUCTIONS$
+
+
+$QUESTION_TYPE_INSTRUCTIONS$
+
+Guidelines:
+1. Carefully follow both the subject and question type instructions.
+2. Ensure the question is appropriate for the specified subject (CODE, CONCEPTUAL, LITERATURE, or MATH).
+3. Format the question according to the specified type (CALCULATION_ENTRY, CODE_ENTRY, MULTIPLE_CHOICE, or TEXT_ENTRY).
+4. Make the question challenging but appropriate for the intended academic level.
+5. Include all necessary components as specified in the instructions (e.g., code snippets, multiple choice options, etc.).
+6. Ensure the question tests understanding rather than mere memorization.
+
+Output your question in the following JSON format:
+
+{
+  "subject": "The subject of the question",
+  "type": "The type of question",
+  "question": "The full text of the question",
+  "additional_data": {
+    // Include any additional data required by the specific subject or question type
+    // (e.g., code snippets, multiple choice options, correct answers, etc.)
+  }
+}
+</task>
+
+<input>
+ - **Question Data**: $QUESTION_DATA$
+</input>
+
+Please start.

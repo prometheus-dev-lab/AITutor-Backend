@@ -29,10 +29,13 @@ from AITutor_Backend.src.PromptUtils.prompt_utils import (
 
 DEBUG = bool(os.environ.get("DEBUG", 0))
 
+
 class Completable(object):
     """Abstract for the is completed method. Used for Data Structures containing interactable items for determining when to allow a user to interact with future items (current item is completed)."""
+
     def is_completed(self):
         raise NotImplementedError
+
 
 class TutorObjPrompts:
     # CHAPTERS
@@ -52,8 +55,8 @@ class TutorObjPrompts:
         lesson_obj_prompt_file,
     ):
         # Load chapter plan prompt
-        self._chapter_plan_prompt = PromptTemplate.from_file(
-            chapter_plan_prompt_file,
+        self._chapter_plan_prompt = PromptTemplate.from_config(
+            "@planChapters",
             {
                 "notebank": TutorObjPrompts.NOTEBANK_STATE_DELIMITER,
                 "concepts": TutorObjPrompts.CONCEPT_GRAPH_DELIMITER,
@@ -62,8 +65,8 @@ class TutorObjPrompts:
         """vars: notebank, concept_graph"""
 
         # Load lesson plan prompt
-        self._lesson_plan_prompt = PromptTemplate.from_file(
-            lesson_plan_prompt_file,
+        self._lesson_plan_prompt = PromptTemplate.from_config(
+            "@planLessons",
             {
                 "notebank": TutorObjPrompts.NOTEBANK_STATE_DELIMITER,
                 "concepts": TutorObjPrompts.CONCEPT_GRAPH_DELIMITER,
@@ -74,8 +77,8 @@ class TutorObjPrompts:
         """vars: notebank, main_concept, prev_chapter, curr_chapter"""
 
         # Load chapter obj prompt
-        self._chapter_obj_prompt = PromptTemplate.from_file(
-            chapter_obj_prompt_file,
+        self._chapter_obj_prompt = PromptTemplate.from_config(
+            "@objConvertChapters",
             {
                 "chapters": "$CHAPTERS$",
             },
@@ -83,8 +86,8 @@ class TutorObjPrompts:
         """vars: chapters"""
 
         # Load chapter obj prompt
-        self._lesson_obj_prompt = PromptTemplate.from_file(
-            lesson_obj_prompt_file,
+        self._lesson_obj_prompt = PromptTemplate.from_config(
+            "@objConvertLessons",
             {
                 "lessons": "$LESSONS$",
             },
@@ -123,42 +126,35 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
         concept_database: ConceptDatabase,
     ):
         super(TutorObjManager, self).__init__()
-        self.llm_prompts = TutorObjPrompts(
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/TutorObjs/chapter_plan_prompt",
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/TutorObjs/chapter_obj_prompt",
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/TutorObjs/lesson_plan_prompt",
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/TutorObjs/lesson_obj_prompt",
-        )
+        self.llm_prompts = TutorObjPrompts()
         self.Chapters = []
         self.num_chapters = 0
         self.cd = concept_database
         self.notebank = notebank
-        
+
         self.curr_chapter_idx = -1
         self.curr_lesson_idx = -1
 
     @property
     def initialized(self):
         return self.num_lessons > 0
-    
+
     @staticmethod
     def from_sql(
         notebank: NoteBank,
         cd: ConceptDatabase,
         chapters_data: List[tuple],
         curr_chapter_idx: int,
-        current_lesson_idx: int
+        current_lesson_idx: int,
     ):
         raise NotImplementedError()
 
     def to_sql(self):
         raise NotImplementedError()
-    
+
     def format_json(self):
         return {
-            "Chapters": [
-                chapter.format_json() for chapter in self.Chapters
-            ],
+            "Chapters": [chapter.format_json() for chapter in self.Chapters],
             "curr_chapter_idx": self.curr_chapter_idx,
             "curr_lesson_idx": self.curr_lesson_idx,
         }
@@ -170,6 +166,10 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
         1. (concept_graph, notebank) -> Generate N Chapters
         2. Convert into N Chapter Objects
         """
+        notebank_state = self.notebank.generate_context_summary(
+            query=f"Creating Chapters for learning about {self.cd.main_concept}",
+            objective=f"Generate a summary of the provided context for creating questions for Chapter {chapter_data}, Lesson: {lesson_data}",
+        )
         while True:
             # Load slides prompt
             slides_prompt = self.llm_prompts.prompt_chapter_plan(
@@ -182,9 +182,7 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
             )
 
             # Get the output
-            llm_output = LLM("claude-3-opus-20240229").chat_completion(
-                messages=messages
-            )
+            llm_output = LLM("@planChapters").chat_completion(messages=messages)
 
             # Get the conversion
             conversion_messages = Conversation.from_message_list(
@@ -199,7 +197,7 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
                 ]
             )
 
-            slides_json_conversion = LLM("claude-3-opus-20240229").chat_completion(
+            slides_json_conversion = LLM("@objConvertChapters").chat_completion(
                 messages=conversion_messages
             )
 
@@ -271,9 +269,7 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
             )
 
             # Get the output
-            llm_output = LLM("claude-3-opus-20240229").chat_completion(
-                messages=messages
-            )
+            llm_output = LLM("@planLessons").chat_completion(messages=messages)
 
             lessons_conversion_messages = Conversation.from_message_list(
                 [
@@ -288,9 +284,9 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
             )
 
             # Get the conversion
-            lessons_json_conversion_output = LLM(
-                "claude-3-opus-20240229"
-            ).chat_completion(messages=lessons_conversion_messages)
+            lessons_json_conversion_output = LLM("@objConvertLessons").chat_completion(
+                messages=lessons_conversion_messages
+            )
 
             # Retrieve the lessons objects:
             success, lessons = Lesson.create_lessons_from_JSON(
@@ -324,13 +320,14 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
                 self.Chapters[chapter_idx].Lessons = lessons
                 self.Chapters[chapter_idx].num_lessons = len(lessons)
                 break  # Finished Generating the Chapter
-    
-    def get_chapter(self, chapter_idx: int) -> 'Chapter':
+
+    def get_chapter(self, chapter_idx: int) -> "Chapter":
         """Initializes a chapter at index `chapter_idx`"""
         if not 0 <= chapter_idx < self.num_chapters:
             raise IndexError("Cannot Access Out-Of-Bounds Chapters.")
 
         return self.Chapters[chapter_idx]
+
 
 class Chapter(JSONSerializable, SQLSerializable, EnvSerializable):
     JSON_REGEX = re.compile(r"\`\`\`json([^\`]*)\`\`\`")
@@ -343,7 +340,7 @@ class Chapter(JSONSerializable, SQLSerializable, EnvSerializable):
         self.overview = overview
         self.outcomes = outcomes
         self.concepts = concepts
-    
+
     @property
     def initialized(self):
         return self.num_lessons > 0
@@ -417,12 +414,28 @@ class Lesson(
             1. (chapter, lesson) -> Slides
             2. (chapter, lesson) -> Questions
         """
-        # Generate Slides: TODO: Do this async threaded
-        self.Slides = SlidePlanner(self.notebank, self.cd)
-        self.Slides.generate_slide_deque(chapter_plan, self.env_string())
+        import threading
 
-        # Generate Questions:
-        # TODO: Generate questions
+        # Generate Slides asynchronously
+        def generate_slides():
+            self.Slides = SlidePlanner(self.notebank, self.cd)
+            self.Slides.generate_slide_deque(chapter_plan, self.env_string())
+
+        # Generate Questions asynchronously
+        def generate_questions():
+            self.Questions = QuestionSuite(self.notebank, self.cd)
+            self.Questions.generate_question_suite(chapter_plan, self.env_string())
+
+        # Create and start threads
+        slide_thread = threading.Thread(target=generate_slides)
+        question_thread = threading.Thread(target=generate_questions)
+
+        slide_thread.start()
+        question_thread.start()
+
+        # Wait for both threads to complete
+        slide_thread.join()
+        question_thread.join()
 
         self.initialized = True
 

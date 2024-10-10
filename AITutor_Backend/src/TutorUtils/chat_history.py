@@ -15,7 +15,7 @@ class ChatHistory(SQLSerializable, JSONSerializable):
             ]
         )
 
-    def hear(
+    def read_chat(
         self,
         user_prompt,
     ):

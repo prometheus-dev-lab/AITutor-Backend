@@ -3,6 +3,8 @@ from litellm import completion
 from typing import Optional
 import os
 
+from AITutor_Backend.src.BackendUtils.llm_configs import get_llm_config
+
 
 class LLM:
     def __init__(
@@ -10,7 +12,7 @@ class LLM:
         model_id: str,
         base_url: str = None,
     ):
-        self._model_id = model_id
+        self._model_id = get_llm_config(model_id)
         self._base_url = base_url
 
     def chat_completion(

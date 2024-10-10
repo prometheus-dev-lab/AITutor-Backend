@@ -1,156 +1,163 @@
 import json
-import re
-from enum import IntEnum
-from typing import List, Tuple, Union
-
+from typing import List, Dict, Any, Tuple
+from dataclasses import dataclass
 from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
+from AITutor_Backend.src.BackendUtils.env_serialize import EnvSerializable
+from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
+from AITutor_Backend.src.BackendUtils.llm_client import LLM
+from AITutor_Backend.src.PromptUtils.prompt_template import PromptTemplate
+from AITutor_Backend.src.PromptUtils.prompt_utils import (
+    Message,
+    Conversation,
+    AI_TUTOR_MSG,
+)
+import numpy as np
+from AITutor_Backend.src.models.language_models import Ranker
+
+from math import log
 
 
-class NoteBank(JSONSerializable):
-    __NOTEBANK_REGEX = re.compile(r"\`\`\`json([^\`]*)\`\`\`")
+@dataclass
+class Note(EnvSerializable):
+    emitter: str
+    data: str
 
-    class Op(IntEnum):
-        ADD = 0
-        DEL = 1
-        NOP = 2
-        TERMINATE = 3
+    def env_string(self):
+        return "### Note:\n" + f" - **Created by:** {self.emitter}\n" + f'"{self.data}"'
 
-    def __init__(
-        self,
-    ):
+
+class NoteBank(JSONSerializable, EnvSerializable, SQLSerializable):
+    def __init__(self):
+        self.__notes: List[Note] = []
+        self.__cache_size = 1000
+        self.__ranker = Ranker(cache_size=self.__cache_size)
+        # self.__prune_prompt = PromptTemplate.from_config("@pruneNotes", {
+        #     "context": "$CONTEXT$",
+        #     "objective": "$OBJECTIVE$",
+        # })
+        self._note_prompt = PromptTemplate.from_config(
+            "@noteGeneration",
+            {
+                "context": "$CONTEXT$",
+                "objective": "$OBJECTIVE$",
+            },
+        )
+
+    def add_note(self, note: Note):
+        """Adds a note to the NoteBank"""
+        self.__notes.append(note)
+
+    def generate_note(self, emitter: str, context: str, objective: str) -> None:
+        """Generates a note based on the given context and objective"""
+        prompt = self._note_prompt.replace(context=context, objective=objective)
+        messages = Conversation.from_message_list(
+            [AI_TUTOR_MSG, Message(role="user", content=prompt)]
+        )
+        note_summary = LLM("@noteGeneration").chat_completion(messages=messages)
+        note = Note(emitter, note_summary)
+        self.add_note(note)
+
+    def query_context_and_generate_summary(
+        self, emitter: str, context: str, objective: str
+    ) -> None:
+        """Generates a note based on the given context and objective"""
+        prompt = self._note_prompt.replace(context=context, objective=objective)
+        messages = Conversation.from_message_list(
+            [AI_TUTOR_MSG, Message(role="user", content=prompt)]
+        )
+        note_summary = LLM("@noteGeneration").chat_completion(messages=messages)
+        note = Note(emitter, note_summary)
+        self.add_note(note)
+
+    def add_note(self, emitter: str, data: str) -> None:
+        """Adds a note to the NoteBank"""
+        note = Note(emitter, data)
+        self.__notes.append(note)
+
+        # Prune the notes if the cache size is too large, we use a logarithmic factor to avoid pruning too often and collecting too many notes
+        if len(self.__notes) > (self.__cache_size + log(base=2, x=self.__cache_size)):
+            self.prune_notes()
+
+    def prune_notes(self) -> None:
+        """Prune the notes to the cache size"""
+        pass  # TODO: Implement the functionality of pruning the notes
+
+    def generate_context_summary(
+        self, query: str, objective: Optional[str], k: int = 10
+    ) -> str:
+        """Generates a summary of the context"""
+        objective = (
+            objective
+            or f"Generate a summary of the context based on the query: {query}"
+        )
+        context = self.get_top_k_results(query, k=k)
+        prompt = self._note_prompt.replace(context=context, objective=objective)
+        messages = Conversation.from_message_list(
+            [AI_TUTOR_MSG, Message(role="user", content=prompt)]
+        )
+        note_summary = LLM("@noteGeneration").chat_completion(messages=messages)
+        return note_summary
+
+    def get_top_k_results(
+        self, query: str, context: str = "N/A", k: int = 10
+    ) -> List[Note]:
+        """Returns the top k notes ranked based on similarity to the query"""
+        if not self.__notes:
+            return []
+
+        texts = [note.env_string() for note in self.__notes]
+        scores = self.__ranker.rank(query, texts)
+
+        # Combine notes with their scores and sort
+        ranked_notes = sorted(
+            zip(self.__notes, scores), key=lambda x: x[1], reverse=True
+        )
+
+        # Return top k notes
+        return [note for note, _ in ranked_notes[:k]]
+
+    def clear(self):
+        """Clears the NoteBank's content."""
         self.__notes = []
 
-    @staticmethod
-    def __extract_operation(
-        llm_output: str,
-    ) -> List[Tuple["NoteBank.Op", Union[int, str]]]:
-        """
-        Extracts an operation from an LLM Output containing valid JSON operation data
-        """
+    def size(self) -> int:
+        """Returns size of the NoteBank"""
+        return len(self.__notes)
 
-        regex_match = NoteBank.__NOTEBANK_REGEX.findall(llm_output)
-        # Format the regex match to a parsable string
-        if regex_match:
-            regex_match = (
-                regex_match[0].replace("```json", "").replace("```", "").strip()
-            )
-        prompt_data = regex_match if regex_match else llm_output
-        try:
-            actions = json.loads(prompt_data)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Error parsing JSON: {str(e)}")
-
-        for action in actions:
-            action_type = action.get("action").lower()
-
-            # Yield with the correct Operation
-            if action_type == "add":
-                yield (NoteBank.Op.ADD, action["note"])
-
-            elif action_type == "del":
-                yield (NoteBank.Op.DEL, action["index"])
-
-            elif action_type == "nop":
-                yield (NoteBank.Op.NOP, "No Operation")
-
-            elif action_type == "terminate":
-                yield (NoteBank.Op.TERMINATE, "Terminate")
-
-            else:
-                raise ValueError(f"Unknown action type: {action_type}")
-
-    def __exec_op(self, op: "NoteBank.Op", val: Union[int, str]) -> None:
-        """
-        This function processes an operation on the Notebank
-        """
-        if op == self.Op.DEL:
-            assert (
-                isinstance(val, int) and val > 0 and val < len(self.__notes)
-            ), f"Error: Could not process delete on input {val}. Ensure this input is valid and is a valid index in the NoteBank"  # Validate Index is valid removal
-            del self.__notes[val]
-        if op == self.Op.ADD:
-            assert isinstance(
-                val, str
-            ), "Error: Could not process add on input {val}. Ensure this input is of type Str."
-            self.add_note(val)  # insert into notebank
-
-    def process_llm_action(self, llm_output: str) -> Tuple[bool, str, bool]:
-        """
-        This function will attempt to modify the data structure based on the Tutor's action.
-
-        Parameters:
-            - llm_output: (str) The Tutor's action represented in terms of a token-string
-
-        Returns:
-            - True, \"\", False iff the actions were successfully parsed
-            - False, error_str, False iff there was an error in the Parsing or Execution
-            - True, \"\", True to terminate on the Notebank.
-        """
-        terminate = False
-        try:
-            # Process inputs:
-            operations = NoteBank.__extract_operation(llm_output=llm_output)
-            # Iterate through operations:
-            for operation in operations:
-                if operation[0] == NoteBank.Op.TERMINATE:
-                    terminate = True
-                self.__exec_op(
-                    op=operation[0], val=operation[1]
-                )  # Executes operation for the tutor
-            return True, "", terminate
-        except Exception as e:
-            return (
-                False,
-                str(e),
-                False,
-            )  # Output will be provided to the model in the case that there was an error; See (INSERT REFERENCE TO VOYAGER HERE)
-
-    def env_string(
-        self,
-    ):
-        """
-        Returns Environment Observation String which the model will use for prediction.
-        """
-        return (
-            "**Notebank**:"
-            + "\n".join([f"\t{i}. {val}" for i, val in enumerate(self.__notes)])
-            if self.__notes
-            else " The Notebank is Empty."
-        )
+    def get_notes(self) -> List[Note]:
+        return self.__notes.copy()
 
     def format_json(self) -> str:
         return json.dumps(
-            {"Notebank": [{"index": i, "note": n} for i, n in enumerate(self.__notes)]}
+            {
+                "NoteBank": [
+                    {"emitter": note.emitter, "data": note.data}
+                    for note in self.__notes
+                ]
+            }
         )
 
-    def clear(
-        self,
-    ):
-        """Clears the Notebank's content."""
-        self.__notes = []
-
-    def add_note(self, note: str):
-        """Adds a note to the Notebank"""
-        self.__notes.append(note)
-
-    def size(
-        self,
-    ) -> int:
-        """Returns size of the Notebank"""
-        return len(self.__notes)
-
-    def get_notes(
-        self,
-    ) -> List[str]:
-        return self.__notes.copy()
-
-    def to_sql(
-        self,
-    ):
-        return "\n".join(self.__notes)
+    def to_sql(self) -> str:
+        return json.dumps(
+            [{"emitter": note.emitter, "data": note.data} for note in self.__notes]
+        )
 
     @staticmethod
-    def from_sql(sql_data):
+    def from_sql(sql_data: str) -> "NoteBank":
         nb = NoteBank()
-        nb.__notes = sql_data.split("\n")
+        notes_data = json.loads(sql_data)
+        for note_data in notes_data:
+            nb.add_note(Note(emitter=note_data["emitter"], data=note_data["data"]))
         return nb
+
+    def env_string(self) -> str:
+        """Returns Environment Observation String which the model will use for prediction."""
+        if not self.__notes:
+            return "**NoteBank**: The NoteBank is Empty."
+
+        return "**NoteBank**:\n" + "\n".join(
+            [
+                f"\t{i}. [{note.emitter}] {note.data}"
+                for i, note in enumerate(self.__notes)
+            ]
+        )

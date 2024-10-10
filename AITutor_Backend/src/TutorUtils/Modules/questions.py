@@ -1,30 +1,29 @@
 import json
 import os
-import re
 from enum import IntEnum
+import threading
 from typing import List, Tuple
 
-import openai
-
-from AITutor_Backend.src.BackendUtils.code_executor import CodeExecutor
+from AITutor_Backend.src.BackendUtils.extractors import JSONExtractor
 from AITutor_Backend.src.BackendUtils.env_serialize import EnvSerializable
 from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
-from AITutor_Backend.src.BackendUtils.replicate_api import ReplicateAPI
 from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
-from AITutor_Backend.src.DataUtils.file_utils import save_training_data
+from AITutor_Backend.src.DataUtils.file_utils import save_training_data, json_to_string
+from AITutor_Backend.src.BackendUtils.llm_client import LLM
+from AITutor_Backend.src.PromptUtils.prompt_template import PromptTemplate
+from AITutor_Backend.src.PromptUtils.prompt_utils import (
+    Message,
+    Conversation,
+    AI_TUTOR_MSG,
+)
+from AITutor_Backend.src.TutorUtils.tutor_objs import Completable
 
-# TODO: fIX INSTRUCTIONS PARAMETER
-USE_OPENAI = True
 DEBUG = bool(os.environ.get("DEBUG", 0))
 
 
-class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable):
+class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completable):
     ALLOWED_LIBS = [
-        [
-            "numpy",
-            "math",
-            "sympy",
-        ],  # Math
+        ["numpy", "math", "sympy"],  # Math
         [
             "numpy",
             "math",
@@ -47,194 +46,265 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable):
         None,
     ]
 
-    class QuestionLLMAPI:
-        CURR_ENV_NOTEBANK_DELIMITER = (
-            "$ENV.NOTEBANK_STATE$"  # Environment for the notebankd
-        )
-        CURR_ENV_QS_CREATED_DELIMITER = (
-            "$ENV.QUESTIONS_CREATED_SUMMARY$"  # Environment for the chat history
-        )
-        CURR_ENV_MAIN_CONCEPT = "$ENV.MAIN_CONCEPT$"
-        CURR_ENV_CONEPT_LIST = "$ENV.CONCEPT_LIST$"
-        QUESTION_PLAN_DELIMITER = "$ENV.QUESTION_PLAN$"
-        CURR_ERROR_DELIMITER = "$ENV.CURR_ERROR$"
+    class QuestionPrompts:
+        def __init__(self):
+            self.main_prompt = PromptTemplate.from_config(
+                "@planQuestions",
+                {
+                    "main_concept": "$ENV.MAIN_CONCEPT$",
+                    "context": "$CONTEXT$",
+                    "chapter": "$ENV.CHAPTER$",
+                    "lesson_plan": "$ENV.LESSON_PLAN$",
+                    "error": "$ENV.CURR_ERROR$",
+                },
+            )
+            self.question_to_obj_prompt = PromptTemplate.from_config(
+                "@objConvertQuestions",
+                {
+                    "question_data": "$QUESTION_DATA$",
+                    "subject_instructions": "$SUBJECT_INSTRUCTIONS$",
+                    "type_instructions": "$TYPE_INSTRUCTIONS$",
+                },
+            )
 
-        def __init__(
-            self,
-            question_plan_prompt_file,
-            question_plan_to_question_file,
-        ):
-            self.client = openai.OpenAI() if USE_OPENAI else ReplicateAPI()
-            with open(question_plan_prompt_file, "r") as f:
-                self.__question_plan_prompt = f.read()
-            with open(question_plan_to_question_file, "r") as f:
-                self.__plan_to_question_prompt = f.read()
+            self.question_data_prompt = PromptTemplate.from_config(
+                "@questionData", {"question_data": "$QUESTION_DATA$"}
+            )
 
-        def request_output_from_llm(
-            self, prompt, model: str, max_length=4000, temp=0.5
-        ):
-            """Requests the Concept information from an LLM.
+            self.subject_prompts = self.load_subject_prompts()
+            self.type_prompts = self.load_type_prompts()
 
-            Args:
-                prompt: (str) - string to get passed to the model
-                model: (str) -
+        def load_subject_prompts(self):
+            subject_prompts = {}
+            for subject in Question.Subject:
+                file_path = f"AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Questions/Subjects/{subject.name}_PROMPT"
+                with open(file_path, "r") as f:
+                    subject_prompts[subject] = f.read()
+            return subject_prompts
 
-            Returns:
-                _type_: _description_
-            """
-            if USE_OPENAI:
-                response = self.client.chat.completions.create(
-                    model=model,
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "Act as an intelligent AI Tutor.",
-                        },
-                        {
-                            "role": "user",
-                            "content": prompt,
-                        },
-                    ],
-                    temperature=temp,
-                    max_tokens=max_length,
-                    top_p=1,
-                    frequency_penalty=0,
-                    presence_penalty=0,
-                )
+        def load_type_prompts(self):
+            type_prompts = {}
+            for q_type in Question.Type:
+                file_path = f"AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Questions/Types/{q_type.name}_PROMPT"
+                with open(file_path, "r") as f:
+                    type_prompts[q_type] = f.read()
+            return type_prompts
 
-                return response.choices[0].message.content
-            else:
-                return self.client.get_output(prompt, " ")
-
-        def _load_prompt(self, prompt_template, state_dict):
-            prompt_string = prompt_template
-            # Replace Values in Prompt:
-            for k, v in state_dict.items():
-                prompt_string = prompt_string.replace(k, v)
-
-            # Return Prompt:
-            return prompt_string
-
-        def prompt_plan_question(
-            self,
-            main_concept,
-            concept_list,
-            questions_created,
-            notebank_state,
-            curr_error,
-        ):
-            env_state = {
-                QuestionSuite.QuestionLLMAPI.CURR_ENV_MAIN_CONCEPT: main_concept,
-                QuestionSuite.QuestionLLMAPI.CURR_ENV_CONEPT_LIST: concept_list,
-                QuestionSuite.QuestionLLMAPI.CURR_ENV_QS_CREATED_DELIMITER: questions_created,
-                QuestionSuite.QuestionLLMAPI.CURR_ENV_NOTEBANK_DELIMITER: notebank_state,
-                QuestionSuite.QuestionLLMAPI.CURR_ERROR_DELIMITER: curr_error,
-            }
-            return self._load_prompt(self.__question_plan_prompt, env_state)
-
-        def plan_to_question(self, main_concept, concept_list, q_plan, curr_error):
-            env_state = {
-                QuestionSuite.QuestionLLMAPI.CURR_ENV_MAIN_CONCEPT: main_concept,
-                QuestionSuite.QuestionLLMAPI.CURR_ENV_CONEPT_LIST: concept_list,
-                QuestionSuite.QuestionLLMAPI.QUESTION_PLAN_DELIMITER: q_plan,
-                QuestionSuite.QuestionLLMAPI.CURR_ERROR_DELIMITER: curr_error,
-            }
-            return self._load_prompt(self.__plan_to_question_prompt, env_state)
-
-    def __init__(self, num_questions, Notebank, ConceptDatabase):
+    def __init__(self, Notebank, ConceptDatabase):
         super(QuestionSuite, self).__init__()
         self.current_obj_idx = -1
         self.__Notebank = Notebank
         self.__ConceptDatabase = ConceptDatabase
+        self.Questions: List["Question"] = []
+        self.num_questions = 0
+        self.prompts = QuestionSuite.QuestionPrompts()
+
+    def get_object(self, idx):
+        """
+        Returns Slide Object iff idx is a valid Slide Object index. Else, AssertionError
+        """
+        assert (
+            0 <= idx < self.num_slides
+        ), "Cannot access Slide Object Array Out of Bounds"
+        return self.Questions[idx]
+
+    def assert_question_data(self, q_data: dict) -> bool:
         assert isinstance(
-            num_questions, int
-        ), "Cannot Create a QuestionSuite without specifying (int) number of questions. Check the Data Type provided for num_questions"
-        self.num_questions = max(min(25, num_questions), 1)
-        self.Questions = []
-        self.llm_api = QuestionSuite.QuestionLLMAPI(
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Questions/plan_question_prompt",
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Questions/plan_to_question_prompt",
-        )
+            q_data, dict
+        ), f"Error, Question Data is not a dictionary: {q_data}"
+
+        # Assertions for each question type
+        if q_data.get("type") == Question.Type.CODE_ENTRY:
+            assert q_data.get(
+                "code_prompt"
+            ), f"Error, Code Entry Question is missing code prompt: {q_data}"
+
+        elif q_data.get("type") == Question.Type.MULTIPLE_CHOICE:
+            assert q_data.get(
+                "options"
+            ), f"Error, Multiple Choice Question is missing options: {q_data}"
+            assert q_data.get(
+                "correct_entry"
+            ), f"Error, Multiple Choice Question is missing correct entry: {q_data}"
+
+        elif q_data.get("type") == Question.Type.CALCULATION_ENTRY:
+            assert q_data.get(
+                "calculation_script"
+            ), f"Error, Calculation Entry Question is missing correct answer: {q_data}"
+
+        elif q_data.get("type") == Question.Type.TEXT_ENTRY:
+            assert q_data.get(
+                "text_prompt"
+            ), f"Error, Text Entry Question is missing text prompt: {q_data}"
+
+        else:
+            raise ValueError(f"Error, Question Type is not supported: {q_data}")
+
+        # Assertions for each subject
+        if q_data.get("subject") == Question.Subject.MATH:
+            assert q_data.get(
+                "instructions"
+            ), f"Error, Math Question is missing instructions: {q_data}"
+            assert q_data.get(
+                "latex_question"
+            ), f"Error, Math Question is missing LaTeX representation: {q_data}"
+
+        elif q_data.get("subject") == Question.Subject.CODE:
+            assert q_data.get(
+                "instructions"
+            ), f"Error, Code Question is missing instructions: {q_data}"
+            assert q_data.get(
+                "boilerplate"
+            ), f"Error, Code Question is missing boilerplate: {q_data}"
+            assert q_data.get(
+                "test_case_script"
+            ), f"Error, Code Question is missing test case script: {q_data}"
+
+        elif q_data.get("subject") == Question.Subject.LITERATURE:
+            assert q_data.get(
+                "instructions"
+            ), f"Error, Literature Question is missing instructions: {q_data}"
+
+        elif q_data.get("subject") == Question.Subject.CONCEPTUAL:
+            assert q_data.get(
+                "instructions"
+            ), f"Error, Conceptual Question is missing instructions: {q_data}"
+
+        return True
 
     def generate_question_data(
-        self,
+        self, q_obj: "Question", generation_lock: threading.Lock
     ):
+        # Generate the question data
+        prompt = self.prompts.question_to_obj_prompt.replace(
+            question_data=q_obj.format_json(),
+            subject_instructions=self.prompts.subject_prompts[q_obj.subject],
+            type_instructions=self.prompts.type_prompts[q_obj.type],
+        )
+        messages = Conversation.from_message_list(
+            [AI_TUTOR_MSG, Message(role="user", content=prompt)]
+        )
+        while True:
+            try:
+                # Request the question data from the LLM
+                q_data = LLM("@objConvertQuestions").chat_completion(messages=messages)
+
+                # Extract the question data from the LLM output
+                q_data = JSONExtractor.extract(q_data)
+
+                # Check if the question data is valid
+                _ = self.assert_question_data(q_data)
+                break
+            except Exception as e:
+                error = f"Error while creating Question Data: {e}"
+        with generation_lock:
+            q_obj.data = q_data
+
+    def generate_questions(self, chapter_plan: str, lesson_plan: str):
         if DEBUG:
             print(f"Generating Question Data for {self.__ConceptDatabase.main_concept}")
-        concept_list_str = self.__ConceptDatabase.get_concept_list_str()
-        notebank_str = self.__Notebank.env_string()
-        # Iterate through the Questions and Generate
-        for question_idx in range(self.num_questions):
-            current_questions = self.env_string()
-            error = "There is no current error."
-            while True:
-                try:  # Build Question Plan:
-                    prompt = self.llm_api.prompt_plan_question(
-                        self.__ConceptDatabase.main_concept,
-                        concept_list_str,
-                        self.num_questions,
-                        notebank_str,
-                        error,
-                    )
-                    q_plan = self.llm_api.request_output_from_llm(
-                        prompt, "gpt-4-1106-preview", max_length=6000
-                    )
-                    output_dir = "training_data/questions/plan"
-                    save_training_data(output_dir, prompt, q_plan)
-                    break
-                except Exception as e:
-                    error = f"Error while creating a Question Plan: {e}"
-            error = "There is no current error."
-            while True:
-                try:
-                    with open("translation.txt", "a") as f:
-                        f.write("TRANSLATION\n")
-                    prompt = self.llm_api.plan_to_question(
-                        self.__ConceptDatabase.main_concept,
-                        concept_list_str,
-                        q_plan,
-                        error,
-                    )
-                    llm_output = self.llm_api.request_output_from_llm(
-                        prompt, "gpt-3.5-turbo-16k", max_length=5000
-                    )
-                    question = Question.create_question_from_JSON(
-                        llm_output, self.__ConceptDatabase
-                    )
-                    assert (
-                        question
-                    ), f"Error while creating Question, check the input: {llm_output}"
-                    assert isinstance(
-                        question.type, Question.Type
-                    ), f"Error, could not find type on question, check the input: {llm_output}"
-                    assert isinstance(
-                        question.subject, Question.Subject
-                    ), f"Error, could not find subject on question, check the input: {llm_output}"
-                    assert (
-                        question.concepts
-                    ), f"Error, could not find Concept Database Mappings on Question JSON object. Check the output to ensure that these were included: {llm_output}"
-                    output_dir = "training_data/questions/obj/"
-                    save_training_data(output_dir, prompt, llm_output)
-                    break
-                except Exception as e:
-                    error = f"Error while converting a Question Plan into a Question JSON Object: {e}"
-                    with open("translation_errors.txt", "a") as f:
-                        f.write("TRANSLATION_ERROR\n")
-            if DEBUG:
-                print(f"Question {question_idx}:", question.format_json())
-            self.Questions.append(question)
-        self.current_obj_idx = 0
 
-    def env_string(
-        self,
-    ):
+        context_summary = self.__Notebank.generate_context_summary(
+            query=f"Creating questions for Chapter {chapter_plan}, Lesson: {lesson_plan}",
+            objective=f"Generate a summary of the provided context for creating questions for Chapter {chapter_plan}, Lesson: {lesson_plan}",
+        )
+
+        error = "There is no current error."
+
+        while True:
+            try:
+                # Generate the question plan
+                prompt = self.prompts.main_prompt.replace(
+                    main_concept=self.__ConceptDatabase.main_concept,
+                    context=context_summary,
+                    chapter=chapter_plan,
+                    lesson_plan=lesson_plan,
+                    error=error,
+                )
+                messages = Conversation.from_message_list(
+                    [AI_TUTOR_MSG, Message(role="user", content=prompt)]
+                )
+                q_plan = LLM("@planQuestions").chat_completion(messages=messages)
+
+                # Convert questions to objects:
+                prompt = self.prompts.question_to_obj_prompt.replace(
+                    question_data=q_plan,
+                )
+                messages = Conversation.from_message_list(
+                    [AI_TUTOR_MSG, Message(role="user", content=prompt)]
+                )
+                q_objs = LLM("@objConvertQuestions").chat_completion(messages=messages)
+
+                # Try to create questions from the question objects
+                try:
+                    q_objs = JSONExtractor.extract(q_objs)
+                except Exception as e:
+                    error = f"Error while creating Question Objects: {e}"
+                    continue
+
+                # Check if the output is a list of questions
+                if isinstance(q_objs, list) and all(
+                    isinstance(q, dict) for q in q_objs
+                ):
+                    # Check to make sure that each question object is valid
+                    for q in q_objs:
+                        assert isinstance(
+                            q.get("subject"), Question.Subject
+                        ), f"Error, could not find subject on question, check the input: {str(q)}"
+                        assert isinstance(
+                            q.get("type"), Question.Type
+                        ), f"Error, could not find type on question, check the input: {str(q)}"
+                        assert q.get(
+                            "concepts"
+                        ), f"Error, could not find Concept Database Mappings on Question JSON object. check the input: {str(q)}"
+                        assert q.get(
+                            "plan"
+                        ), f"Error, could not find Plan on Question JSON object. check the input: {str(q)}"
+                        q_obj = Question(
+                            q_subject=Question.Subject[q.get("subject")],
+                            q_type=Question.Type[q.get("type")],
+                            question_data={"plan": q.get("plan")},
+                            concepts=[
+                                self.__ConceptDatabase.get_concept(c)
+                                for c in q.get("concepts")
+                            ],
+                        )
+                        self.Questions.append(q_obj)
+
+                # Save the question plan
+                output_dir = "training_data/questions/plan"
+                save_training_data(
+                    output_dir, json_to_string(messages.format_json()), q_plan
+                )
+
+                self.num_slides = len(q_objs)
+                return
+            except Exception as e:
+                error = f"Error while creating a Question Plan: {e}"
+
+    def generate_question_suite(self, chapter_plan: str, lesson_plan: str):
+        self.generate_questions(chapter_plan, lesson_plan)
+        # Create the questions from the question objects in a threaded manner
+        threads = []
+        generation_lock = threading.Lock()
+        for q_obj in self.Questions:
+            thread = threading.Thread(
+                target=self.generate_question_data,
+                args=(q_obj, generation_lock),
+            )
+            threads.append(thread)
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+    def env_string(self):
         map_question = (
-            lambda x: f'{x.subject}, {x.type}, Concepts: {", ".join([concept.name for concept in x.concepts])}'
+            lambda x: f'**Subject**: {Question.Subject[x.subject].name}, **Type**: {Question.Type[x.type].name}, **Concepts**: {", ".join([f"`{concept.name}`" for concept in x.concepts])}'
         )
         return (
             "\n".join(
                 [
-                    f"{str(i)}: " + map_question(question)
+                    f"**{str(i)}**: " + map_question(question)
                     for i, question in enumerate(self.Questions)
                 ]
             )
@@ -243,16 +313,22 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable):
         )
 
     def to_sql(self):
-        """Concert QuestionSuite into SQL Database
-        returns:
-            - Tuple[int, int, List[Questions]] (Current Obj Idx, num_questions, Questions)
-        """
         return (
             self.current_obj_idx,
             self.num_questions,
-            [question.to_sql() for question in self.Questions],
+            [question.format_json() for question in self.Questions],
         )
 
+    def combine_prompts(self, subject, q_type):
+        main_prompt = self.prompts.main_prompt.get_prompt()
+        subject_instructions = self.prompts.subject_prompts[subject]
+        type_instructions = self.prompts.type_prompts[q_type]
+
+        return main_prompt.replace(
+            "$SUBJECT_INSTRUCTIONS$", subject_instructions
+        ).replace("$TYPE_INSTRUCTIONS$", type_instructions)
+
+    @staticmethod
     def from_sql(
         current_obj_idx,
         num_questions,
@@ -275,9 +351,6 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable):
         return q_suite
 
     def get_object(self, idx):
-        """
-        Returns Question Object iff idx is a valid Question Object index. Else, AssertionError
-        """
         assert (
             0 <= idx < self.num_questions
         ), "Cannot access Question Object Array Out of Bounds"
@@ -290,21 +363,22 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable):
             "num_questions": self.num_questions,
         }
 
+    def is_completed(self):
+        return all([question.completed for question in self.Questions])
+
 
 class Question(JSONSerializable, SQLSerializable):
-    __QUESTION_REGEX = re.compile(r"\`\`\`json([^\`]*)\`\`\`")
-
     class Subject(IntEnum):
-        MATH = 0  # Requires latex_code
-        CODE = 1  # Requires test_cases
-        LITERATURE = 2  # Requires passage
-        CONCEPTUAL = 3  #
+        MATH = 0
+        CODE = 1
+        LITERATURE = 2
+        CONCEPTUAL = 3
 
     class Type(IntEnum):
-        TEXT_ENTRY = 0  # Requires Rubric
-        MULTIPLE_CHOICE = 1  # Requires Correct Answer
-        CALCULATION_ENTRY = 2  # Requires calculation_script
-        CODE_ENTRY = 3  # Requires Code Executor
+        TEXT_ENTRY = 0
+        MULTIPLE_CHOICE = 1
+        CALCULATION_ENTRY = 2
+        CODE_ENTRY = 3
 
     MAP_SUBJECT_2_STR = {
         0: "Math (0)",
@@ -323,214 +397,52 @@ class Question(JSONSerializable, SQLSerializable):
         self,
         q_subject: "Question.Subject",
         q_type: "Question.Type",
-        question_instructins: str,
         question_data: dict,
-        concepts,
+        concepts: List["Concept"],
+        student_response: dict = {},
+        completed: bool = False,
     ):
-        """
-        Defined Data Fields
-
-        - Math:
-          - data "str" (about a math question)
-          - latex_code "render code for question (str)"
-          - entry_1 (Multiple Choice) # if multiple choice
-          - entry_2 (Multiple Choice)
-          ...
-
-        - Code:
-          - data "str" (about a coding question)
-          - test_cases "str" # Assert Final print is True
-
-        - Literature:
-          - data (about a passage of text)
-          - reading_passage "str"
-          - rubric "(str) Grading rubric" # if TEXT_ENTRY
-          - entry_1 # if multiple choice
-          - entry_2
-          ...
-          - correct_entry # if multiple choice
-
-        - Conceptual:
-          - Question
-          - rubric "(str) Grading rubric" # if TEXT_ENTRY
-          - entry_1 # if multiple choice
-          - entry_2
-          ...
-          - correct_entry # if multiple choice
-
-        """
         self.subject = q_subject
         self.type = q_type
-        self.instructions = question_instructins
         self.data = question_data
         self.concepts = [c for c in concepts if c is not None]
-        self.student_response = None  # Initialize to None
+
+        self.student_response = student_response
+        self.completed = completed
 
     def __repr__(self) -> str:
-        return f"Question(data: {self.data}) <{self.__hash__()}>"
+        return f"Question(data: {self.data})"
 
-    @staticmethod
-    def create_question_from_JSON(llm_output, ConceptDatabase) -> "Question":
-        """ """
-
-        regex_match = Question.__QUESTION_REGEX.findall(llm_output)
-        # Try to get json format or attempt to use output as json
-        if regex_match:
-            regex_match = (
-                regex_match[0].replace("```json", "").replace("```", "").strip()
-            )
-        question_data = regex_match if regex_match else llm_output
-        try:
-            question_data = json.loads(question_data)
-        except json.JSONDecodeError as e:
-            raise ValueError(
-                f"Error parsing JSON on output: {llm_output},  error: {str(e)}"
-            )
-
-        q_subject = question_data.get("subject", -1)
-        q_type = question_data.get("type", -1)
-        q_concepts = question_data.get("concepts", None)
-        q_data = question_data.get("data", None)
-        assert (
-            q_subject != -1
-        ), f'Error while determining Question\'s subject field, ensure your output for parameter "subject" was of type int and also included in your output. Ouput: {llm_output}'
-        assert (
-            q_type != -1
-        ), f'Error while determining Question\'s type field, ensure your output for parameter "type" was of type int and also included in your output. Ouput: {llm_output}'
-        assert (
-            q_concepts
-        ), f'Error while determining Question\'s concepts field, ensure your output for parameter "concepts" was of type list[str] and also included in your output. Ouput: {llm_output}'
-        assert (
-            q_data
-        ), f'Error while determining Question\'s data field, ensure your output for parameter "data" was of type str and also included in your output. Ouput: {llm_output}'
-        assert q_data, "Did not include question data in JSON object."
-        try:
-            q_subject = Question.Subject(q_subject)
-        except ValueError:
-            raise Exception(
-                f"Error while determining Question's Subject, ensure your input was of type int and is a proper enum value. Ouput: {llm_output}"
-            )
-        try:
-            q_type = Question.Type(q_type)
-        except ValueError:
-            raise Exception(
-                f"Error while determining Question's Type, ensure your input was of type int and is a proper enum value. Ouput: {llm_output}"
-            )
-        try:
-            q_concepts = [
-                concept
-                for concept in map(ConceptDatabase.get_concept, q_concepts)
-                if concept is not None
-            ]
-        except:
-            raise Exception(
-                f'Error while determining Question\'s Concept Mappings, ensure your output for parameter "concepts" was of type List[str] and the concepts exist in the database. Ouput: {llm_output}'
-            )
-
-        q_data = {
-            k: v for k, v in question_data.items() if k not in ("subject", "type")
-        }
-
-        # Type Based Assertions
-        if q_type == Question.Type.MULTIPLE_CHOICE:
-            assert (
-                len([k for k in q_data.keys() if "entry" in k and not "correct" in k])
-                > 1
-            ), f"Error in creating Multiple Choice Question: provided less than 2 Choices. Output: {llm_output}"
-            assert (
-                q_data.get("correct_entry", None)
-                and q_data["correct_entry"] in q_data
-                and "entry" in q_data["correct_entry"]
-            ), "Error in creating Multiple Choice Question: did not provide correct_entry field (the correct answer choice)"
-
-        elif q_type == Question.Type.TEXT_ENTRY:
-            assert (
-                "rubric" in q_data
-            ), "Error in creating Text Entry Question: Rubric is required."
-
-        elif q_type == Question.Type.CALCULATION_ENTRY:
-            assert (
-                "calculation_script" in q_data
-            ), f"Error in creating Math Entry Question: calculation_script for computing the value of the question is missing. Output: {llm_output}"
-
-        elif q_type == Question.Type.CODE_ENTRY:
-            assert (
-                "test_cases_script" in q_data
-            ), f"Error in creating Code Entry Question: Test cases script was not provided. Output: {llm_output}"
-            # Note: Code Executor is a parameter attached to the program regardless.
-
-        ### Subject Based Assertions
-        if q_subject == Question.Subject.LITERATURE:
-            assert (
-                "reading_passage" in q_data
-            ), f'Error in creating Literature Question: "reading_passage" parameter was not provided. Output: {llm_output}'
-
-        elif q_subject == Question.Subject.MATH:
-            assert (
-                "latex_code" in q_data
-            ), f'Error in creating Math Question: "latex_code" parameter for displaying the equation is missing. Output: {llm_output}'
-
-        # Code Questions taken care of by code entry
-        # Conceptual Questions do not require any additional checks, as they are topic related questions that are either open-ended or multiple choice. The TEXT ENTRY checks and the MULTIPLE_CHOICE checks already assure this to be the case.
-
-        return Question(q_subject, q_type, "", q_data, q_concepts)
-
-    def evaluate_user_input(self, user_input):
-        """Based on the user_input, evaluate the question and return a value between [0-5].
-
-        Args:
-            user_input (str):
-        """
-        pass
-
-    def to_sql(
-        self,
-    ) -> Tuple[str, str, str]:
-        """Returns the state of Concept
-
-        Returns:
-            Tuple[str, str, str, List[str]]: (self.subject, self.type, self.data, self.concepts)
-        """
-        return (
-            int(self.subject),
-            int(self.type),
-            self.instructions,
-            json.dumps(self.data),
-            [c.name for c in self.concepts],
-        )
-
-    def format_json(
-        self,
-    ):
-        """convert question into JSON object
-
-        Returns:
-            _type_: _description_
-        """
+    def format_json(self):
         return {
             "subject": int(self.subject),
             "type": int(self.type),
             "data": self.data.copy(),
+            "concepts": [c.name for c in self.concepts],
+            "student_response": self.student_response,
+            "completed": self.completed,
         }
 
-    @staticmethod
-    def from_sql(
-        q_subject: int,
-        q_type: int,
-        q_instructions: str,
-        q_data: str,
-        concepts,
-    ) -> "Question":
-        """Returns the state of Concept
-            - Tuple[str, str, str]: (self.subject, self.type, self.data)
+    def evaluate(self, student_response_data: dict) -> dict:
+        self.student_response = student_response_data
+        return_data = {}
 
-        Returns:
-            - Question: representing the class
-        """
-        return Question(
-            Question.Subject(q_subject),
-            Question.Type(q_type),
-            q_instructions,
-            dict(json.loads(q_data)),
-            concepts,
-        )
+        if self.type == Question.Type.TEXT_ENTRY:
+            self.completed = True  # TODO: Implement Text Entry Evaluation
+        elif self.type == Question.Type.MULTIPLE_CHOICE:
+            self.completed = self.data.get(
+                "correct_entry"
+            ) == self.student_response.get(
+                "entry"
+            )  # TODO: Implement Multiple Choice Evaluation
+            return_data["feedback"] = (
+                "Correct!" if self.completed else "incorrect..."
+            )  # TODO: Implement Multiple Choice Feedback by using Chat messaging
+        elif self.type == Question.Type.CALCULATION_ENTRY:
+            self.completed = True  # TODO: Implement Calculation Entry Evaluation
+        elif self.type == Question.Type.CODE_ENTRY:
+            self.completed = True  # TODO: Implement Code Entry Evaluation
+
+        return_data["completed"] = self.completed
+
+        return return_data

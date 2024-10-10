@@ -1,61 +1,27 @@
-## Subject Requirements
-The question provided has been selected to be a Math Question. Math questions will need instructions, including any LaTeX code which is used to render whatever mathematical question you are asking. It is possible for a math question to have no LaTeX representation, in which case it is not necessary.
+## Subject Instructions for MATH
 
-The description of the question has already been provided for you.
+When generating a math question, include the following components:
 
-Based on your instructions and the description of the question you will create a LaTeX Code.
+1. Instructions:
+   - Provide a clear problem statement.
+   - Explain any relevant mathematical concepts or formulas needed to solve the problem.
+   - Include step-by-step guidance if appropriate for the difficulty level.
+   - Use LaTeX code to represent mathematical expressions and equations.
 
-**Requirements:**
-- Instructions should provide enough detail for completing the math problem. This should include LaTeX Code representing the question which we can render for the user to view the question if it is applicable.
+2. LaTeX Representation:
+   - Include a LaTeX representation of the question if applicable.
+   - Ensure all mathematical symbols, variables, and equations are properly formatted in LaTeX.
+   - If the question doesn't require LaTeX, provide a clear text representation.
 
-Here are an example Description and the respective Question Generation Process.
+Format your output as a JSON object with the following structure:
 
-Example:
-
-**Description:** A triangle has sides of lengths 7 cm, 24 cm, and 25 cm. Determine if it is a right triangle.
-
-### Question Generation Process
-
-#### Instructions:
-To determine if a triangle with sides of lengths 7 cm, 24 cm, and 25 cm is a right triangle, you need to check if these sides satisfy the Pythagorean theorem. The Pythagorean theorem states that in a right-angled triangle, the square of the length of the hypotenuse (the side opposite the right angle) is equal to the sum of the squares of the other two sides. Identify the longest side as the potential hypotenuse and apply the Pythagorean theorem to verify if the triangle is right-angled.
-
-\[
-\text{Check if the triangle with sides } 7\, \text{cm}, 24\, \text{cm}, \text{and } 25\, \text{cm} \text{ is a right triangle.}
-\]
-
-
-JSON Translation: (Subject)
-```json
 {
-  "instructions": "#### Instructions:\nTo determine if a triangle with sides of lengths 7 cm, 24 cm, and 25 cm is a right triangle, you need to check if these sides satisfy the Pythagorean theorem. The Pythagorean theorem states that in a right-angled triangle, the square of the length of the hypotenuse (the side opposite the right angle) is equal to the sum of the squares of the other two sides. Identify the longest side as the potential hypotenuse and apply the Pythagorean theorem to verify if the triangle is right-angled.\n\n\\[\n\\text{Check if the triangle with sides } 7\\, \\text{cm}, 24\\, \\text{cm}, \\text{and } 25\\, \\text{cm} \\text{ is a right triangle.}\n\\]"
+  "instructions": "Markdown-formatted instructions including LaTeX code where necessary",
+  "latex_question": "LaTeX representation of the question (if applicable, otherwise null)"
 }
 
-```
-
-Example 2:
-### Description
-Calculate the area of a triangle given the lengths of its three sides, using Heron's formula.
-
-### Question Generation Process
-
-#### Instructions
-To solve this problem, use Heron's formula for calculating the area of a triangle when the lengths of all three sides are known. Heron's formula states that the area of a triangle with sides of length \(a\), \(b\), and \(c\) is:
-
-\[
-\text{Area} = \sqrt{s \times (s-a) \times (s-b) \times (s-c)}
-\]
-
-where \(s\) is the semi-perimeter of the triangle, calculated as:
-
-\[
-s = \frac{a + b + c}{2}
-\]
-
-First, calculate the semi-perimeter \(s\) using the lengths of the sides. Then, apply Heron's formula to find the area.
-
-JSON Translation: (Subject)
-```json
-{
-  "instructions": "#### Instructions:\nTo solve this problem, use Heron's formula for calculating the area of a triangle when the lengths of all three sides are known. Heron's formula states that the area of a triangle with sides of length \\(a\\), \\(b\\), and \\(c\\) is:\n\n\\[\n\\text{Area} = \\sqrt{s \\times (s-a) \\times (s-b) \\times (s-c)}\n\\]\n\nwhere \\(s\\) is the semi-perimeter of the triangle, calculated as:\n\n\\[\ns = \\frac{a + b + c}{2}\n\\]\n\nFirst, calculate the semi-perimeter \\(s\\) using the lengths of the sides. Then, apply Heron's formula to find the area."
-}
-```
+Guidelines:
+- Use \[ and \] for displayed equations and \( and \) for inline equations in LaTeX.
+- Ensure the LaTeX code is properly escaped within the JSON string.
+- Make sure the question is challenging and relevant to the specified mathematical concepts.
+- Consider the intended difficulty level when formulating the question and instructions.

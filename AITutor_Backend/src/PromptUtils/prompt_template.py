@@ -1,6 +1,8 @@
 import os
 from typing import Any, Dict, Tuple
 
+from AITutor_Backend.src.PromptUtils.prompt_configs import get_prompt_config
+
 
 class PromptTemplate(object):
     def __init__(
@@ -14,7 +16,6 @@ class PromptTemplate(object):
         self._prompt_data = prompt_data
         self._variables = variables
 
-        # TODO: do assertions that each var can change the prompt data
         for var, repl_tag in self._variables.items():
             prompt_test = self._prompt_data
             prompt_test = prompt_test.replace(repl_tag, repl_tag + repl_tag)
@@ -31,6 +32,25 @@ class PromptTemplate(object):
         """
         Creates a prompt template from a file given a specific dictionary of variables
         """
+        assert os.path.exists(
+            prompt_file_path
+        ), f"[PromptTemplate] Creation Assertion Error: path does not exist, {prompt_file_path}"
+
+        with open(prompt_file_path, "r", encoding="utf-8") as f:
+            prompt_data = f.read()
+
+        return cls(prompt_data, variables)
+
+    @classmethod
+    def from_config(
+        cls,
+        config_name: str,
+        variables: Dict[str, str],  # (Var Name -> Replacement Tag)
+    ) -> "PromptTemplate":
+        """
+        Creates a prompt template from the parsed config name. Ensure the name starts with @ and is recognized by the prompt_configs.py file.
+        """
+        prompt_file_path = get_prompt_config(config_name)
         assert os.path.exists(
             prompt_file_path
         ), f"PromptTemplate Creation Assertion Error: path does not exist, {prompt_file_path}"

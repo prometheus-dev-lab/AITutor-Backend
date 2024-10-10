@@ -42,7 +42,7 @@ class DatabaseManagerTestCase(TestCase):
         assert (
             self.db_manager.tutor_env.chat_history is not None
         ), "Error creating the chathistory model"
-        self.db_manager.tutor_env.chat_history.hear("test user input")
+        self.db_manager.tutor_env.chat_history.read_chat("test user input")
         self.db_manager.tutor_env.chat_history.respond("test user output")
 
         # Add concept database from other test:
@@ -111,7 +111,7 @@ class DatabaseManagerTestCase(TestCase):
         assert (
             self.db_manager.tutor_env.chat_history is not None
         ), "Error reloading the chathistory model"
-        self.db_manager.tutor_env.chat_history.hear("test user input more")
+        self.db_manager.tutor_env.chat_history.read_chat("test user input more")
         self.db_manager.tutor_env.chat_history.respond("test user output more")
 
         # Add concept database from other test:

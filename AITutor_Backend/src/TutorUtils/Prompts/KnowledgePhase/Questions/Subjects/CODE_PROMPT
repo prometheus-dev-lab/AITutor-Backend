@@ -1,118 +1,33 @@
-## Subject Requirements
-The question provided has been selected to be a Coding Question. Coding questions will need instructions, a provided boilerplate/template, and test cases based off of the description we provide. 
+## Subject Instructions for CODE
 
-Based on your instructions you will create both a Boilerplate Code and Test Cases.
+When generating a coding question, include the following components:
 
-**Requirements:**
-- `Instructions` should provide enough detail for completing the coding problem. Using markdown, this should include an objective, the function signature, the input, the output, and the constraints put onto the input.
+1. Instructions:
+   - Provide a clear problem statement.
+   - Specify the function signature (name, parameters, return type).
+   - Describe the input format and constraints.
+   - Explain the expected output.
+   - Include any relevant concepts being tested.
+   - Add a hint or approach suggestion if appropriate.
 
-- `Boilerplate` code should include the function and some basic examples of how the function should be called. This will be embeded into the user's program space for them to modify and write their logic into.
+2. Boilerplate Code:
+   - Include the function definition with correct signature.
+   - Add import statements if necessary.
+   - Provide basic example usage of the function.
+   - Use comments to indicate where the student should write their code.
 
-- `Test Case Script` should be equality checking statements with the function call's return value and the expected return value. They should return either True or False. When ran, the Test Case Script should contain outputs of values True of False.
+3. Test Case Script:
+   - Create a variety of test cases covering different scenarios.
+   - Include edge cases and corner cases.
+   - Use assert statements or print comparisons for each test case.
+   - Ensure test cases are comprehensive and validate the solution thoroughly.
 
-## Example Input: this is the optimal path problem as input
+Format your output as a JSON object with the following structure:
 
-**Description:** Optimal Path in a Grid
-
-Problem Statement:
-Given a 2D grid of positive integers, where each cell represents the number of points you can collect. You start from the top-left corner and can move either right or down at each step. Your goal is to find the path that collects the maximum points by the time you reach the bottom-right corner.
-
-Concepts Tested:
-
-    Dynamic Programming
-    Grid Traversal
-
-Hint for Approach:
-Consider the subproblem of finding the optimal path to each cell. The value of the current cell depends on the maximum of the two cells from which it can be reached (above or left).
-
-## Example Output: for the optimal path problem
-
-### Instructions for "Optimal Path in a Grid"
-
-#### Objective:
-Write a function `findMaxPath` that takes a 2D grid of positive integers as input and returns the maximum sum of points you can collect by moving from the top-left corner to the bottom-right corner. You can only move right or down at each step.
-
-#### Function Signature:
-```python
-def findMaxPath(grid: List[List[int]]) -> int:
-```
-
-#### Input:
-- `grid`: A 2D list of positive integers representing the grid. Each `grid[i][j]` contains the points at cell `(i, j)`.
-
-#### Output:
-- Return an integer representing the maximum sum of points collected along the path.
-
-#### Constraints:
-- The number of rows and columns in the grid will not exceed 100.
-- Each cell will contain a positive integer.
-
-### Boilerplate Code:
-```python
-from typing import List
-
-def findMaxPath(grid: List[List[int]]) -> int:
-    pass # Your code here
-
-grid1 = [[1, 3, 1],
-         [1, 5, 1],
-         [4, 2, 1]]
-print(findMaxPath(grid1) == 12)  # Expected output: 12
-
-grid2 = [[1, 2, 3],
-         [4, 5, 6],
-         [7, 8, 9]]
-print(findMaxPath(grid2) == 29)  # Expected output: 29
-```
-
-### Test Cases:
-
-1. **Basic Test Case:**
-```python
-grid = [[1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9]]
-print(findMaxPath(grid) == 29) # Expected output: 29
-```
-
-2. **Single Row or Column:**
-```python
-grid = [[1, 2, 3, 4]]
-print(findMaxPath(grid) == 10) # Expected output: 10
-
-grid = [[1], [2], [3], [4]]
-print(findMaxPath(grid) == 10) # Expected output: 10
-```
-
-3. **Large Numbers:**
-```python
-grid = [[100, 200],
-        [300, 400]]
-print(findMaxPath(grid) == 700) # Expected output; 
-```
-
-4. **Zig-Zag Path:**
-```python
-grid = [[1, 10, 3],
-        [1, 1, 20],
-        [2, 2, 2]]
-print(findMaxPath(grid) == 36)
-```
-
-5. **Empty Grid:**
-```python
-grid = []
-print(findMaxPath(grid) == 0)
-```
-
-
-JSON Translation:
-```json
 {
-  "instructions": "### Instructions for \"Optimal Path in a Grid\"\n\n#### Objective:\nWrite a function `findMaxPath` that takes a 2D grid of positive integers as input and returns the maximum sum of points you can collect by moving from the top-left corner to the bottom-right corner. You can only move right or down at each step.\n\n#### Function Signature:\n```python\ndef findMaxPath(grid: List[List[int]]) -> int:\n```\n\n#### Input:\n- `grid`: A 2D list of positive integers representing the grid. Each `grid[i][j]` contains the points at cell `(i, j)`.\n\n#### Output:\n- Return an integer representing the maximum sum of points collected along the path.\n\n#### Constraints:\n- The number of rows and columns in the grid will not exceed 100.\n- Each cell will contain a positive integer.",
-  
-  "boilerplate": "from typing import List\n\ndef findMaxPath(grid: List[List[int]]) -> int:\n    # Your code here\n\n# Example Test Cases (You can add more)\nif __name__ == \"__main__\":\n    grid1 = [[1, 3, 1],\n             [1, 5, 1],\n             [4, 2, 1]]\n    print(findMaxPath(grid1))  # Expected output: 12\n\n    grid2 = [[1, 2, 3],\n             [4, 5, 6],\n             [7, 8, 9]]\n    print(findMaxPath(grid2))  # Expected output: 29",
-  
-  "test_case_script": "grid1 = [[1, 3, 1],\n         [1, 5, 1],\n         [4, 2, 1]]\nprint(findMaxPath(grid1) == 12)\ngrid2 = [[1, 2, 3],\n         [4, 5, 6],\n         [7, 8, 9]]\nprint(findMaxPath(grid2) == 29)\n\ngrid = [[1, 2, 3, 4]]\nprint(findMaxPath(grid) == 10)\n\ngrid = [[1], [2], [3], [4]]\nprint(findMaxPath(grid) == 10) \n\ngrid = [[100, 200],\n        [300, 400]]\nprint(findMaxPath(grid) == 700)\n\ngrid = [[1, 10, 3],\n        [1, 1, 20],\n        [2, 2, 2]]\nprint(findMaxPath(grid) == 36)\n\ngrid = []\nprint(findMaxPath(grid) == 0)"
+  "instructions": "Markdown-formatted instructions",
+  "boilerplate": "Python code as a string",
+  "test_case_script": "Python code as a string"
 }
-```
+
+Ensure that the question is challenging, relevant to the specified programming concepts, and suitable for the intended difficulty level.

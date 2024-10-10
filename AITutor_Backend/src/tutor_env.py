@@ -169,7 +169,7 @@ class TutorEnv(  ################# TUTOR_ENV #######################
             """
             if user_input.get("is_audio", False):  # User Data is Audio
                 pass
-                # TODO: user_input["user_prompt"] = self.__ears.hear(user_input["user_prompt"])
+                # TODO: user_input["user_prompt"] = self.__ears.read_chat(user_input["user_prompt"])
 
             user_prompt = user_input["user_prompt"]
             # TODO: Do processing
@@ -398,11 +398,9 @@ class TutorEnv(  ################# TUTOR_ENV #######################
             str: Chat History
         """
         return self.current_state
-    
+
     @classmethod
-    def populate_data_from_file(
-        cls
-    ) -> 'TutorEnv':
+    def populate_data_from_file(cls) -> "TutorEnv":
         # Generated env data used for testing different components and new features:
         main_concept = "Agent AI"
         notebank_data = """User expresses interest in learning about agent AI.
@@ -459,10 +457,10 @@ class TutorEnv(  ################# TUTOR_ENV #######################
         """
 
         tutor_env = cls()
-        
+
         # Load notebank:
         tutor_env.notebank = NoteBank.from_sql(notebank_data)
-        
+
         # Load Concept Database:
         tutor_env.concept_database = ConceptDatabase(
             main_concept, tutor_env.notebank.env_string()
@@ -474,21 +472,21 @@ class TutorEnv(  ################# TUTOR_ENV #######################
             ) as f:
                 tutor_env.concept_database = pkl.load(f)
 
-        tutor_env.obj_manager = TutorObjManager(tutor_env.notebank, tutor_env.concept_database)
+        tutor_env.obj_manager = TutorObjManager(
+            tutor_env.notebank, tutor_env.concept_database
+        )
 
         # Load Object Manager:
         if os.path.exists(os.path.join(SESSIONS_DATA_PATH, "obj_manager.pkl")):
-            with open(
-                os.path.join(SESSIONS_DATA_PATH, "obj_manager.pkl"), "rb"
-            ) as f:
+            with open(os.path.join(SESSIONS_DATA_PATH, "obj_manager.pkl"), "rb") as f:
                 tutor_env.obj_manager = pkl.load(f)
 
         if tutor_env.obj_manager.num_chapters > 0:
             tutor_env.obj_manager.curr_chapter_idx = 0
-         
+
         if tutor_env.obj_manager.Chapters[0].num_lessons > 0:
             tutor_env.obj_manager.curr_lesson_idx = 0
-        
 
         return tutor_env
+
     ################# ENDOF TUTOR_ENV #######################

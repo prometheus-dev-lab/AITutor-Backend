@@ -1,108 +1,41 @@
-## Type Requirements
-The question provided has been selected to be a Calculation Entry Question. Calculation Entry questions will need a calculation script based on the instructions we create.
+## Type Instructions for CALCULATION_ENTRY
 
-Based on the instructions you created, you will create a short Python Script which will perform the mathematical calculations required by the intstructions. You may find it benificial to describe the process which you will need to perform or use comments that help you come to your answer.
+When generating a calculation entry question, include the following components:
 
-**Requirements:**
-- A Calculation Script should demonstrate an executable piece of code which we can use to calculate the correct value of the question's answer. This should include a final print statement which prints the calculated value to the console such as 'print(y)', where y holds the final value of whatever the correct calculation would be.
+1. Calculation Script:
+   - Write a Python script that performs the calculation required by the question.
+   - Include necessary import statements (e.g., 'import math').
+   - Use clear variable names that reflect their purpose.
+   - Add comments to explain the steps of the calculation.
+   - End the script with a print statement that outputs the final calculated value.
 
-Here are an example Instructions and the respective Question Generation Process.
+2. Guidelines:
+   - Ensure the script is executable and produces the correct answer.
+   - Use appropriate data types (int, float) for the calculations.
+   - Handle potential edge cases or invalid inputs if relevant to the question.
+   - Round the final answer to a reasonable number of decimal places if dealing with floating-point numbers.
 
-## Example 1:
+Format your output as a JSON object with the following structure:
 
-#### Instructions:
-To determine if a triangle with sides of lengths 7 cm, 24 cm, and 25 cm is a right triangle, you need to check if these sides satisfy the Pythagorean theorem. The Pythagorean theorem states that in a right-angled triangle, the square of the length of the hypotenuse (the side opposite the right angle) is equal to the sum of the squares of the other two sides. Identify the longest side as the potential hypotenuse and apply the Pythagorean theorem to verify if the triangle is right-angled.
-
-\[
-\text{Check if the triangle with sides } 7\, \text{cm}, 24\, \text{cm}, \text{and } 25\, \text{cm} \text{ is a right triangle.}
-\]
-
-// Output:
-### Calculation Script
-To write a Python program to calculate whether a triangle with sides of lengths 7 cm, 24 cm, and 25 cm is a right triangle, we need to apply the Pythagorean theorem. The Pythagorean theorem states that for a right triangle, the square of the length of the hypotenuse (the longest side) is equal to the sum of the squares of the other two sides. 
-
-The process involves:
-1. Identifying the longest side as the potential hypotenuse.
-2. Squaring the lengths of all three sides.
-3. Checking if the sum of the squares of the two shorter sides equals the square of the longest side.
-
-Here's a Python script to perform this calculation:
-
-```python
-# Define the lengths of the sides of the triangle
-side1 = 7
-side2 = 24
-side3 = 25
-
-# Calculate the squares of the sides
-side1_squared = side1 ** 2
-side2_squared = side2 ** 2
-side3_squared = side3 ** 2
-
-# Check if the triangle is a right triangle
-# The longest side should be the hypotenuse, so we check if side3 is the hypotenuse
-is_right_triangle = side1_squared + side2_squared == side3_squared
-
-# Print the result
-print(is_right_triangle)
-```
-
-JSON Translation: (Type)
-```json
 {
-  "calculation_script": "side1 = 7\nside2 = 24\nside3 = 25\n\nside1_sq = side1**2\nside2_sq = side2**2\nside3 = side3**2\n\nis_right_triangle = side1_squared + side2_squared == side3_squared\nprint(is_right_triangle)\n"
+  "calculation_script": "Python code as a string"
 }
 
-```
-
-## Example 2:
-
-#### Instructions
-To solve this problem, use Heron's formula for calculating the area of a triangle when the lengths of all three sides are known. Heron's formula states that the area of a triangle with sides of length \(a\), \(b\), and \(c\) is:
-
-\[
-\text{Area} = \sqrt{s \times (s-a) \times (s-b) \times (s-c)}
-\]
-
-where \(s\) is the semi-perimeter of the triangle, calculated as:
-
-\[
-s = \frac{a + b + c}{2}
-\]
-
-First, calculate the semi-perimeter \(s\) using the lengths of the sides. Then, apply Heron's formula to find the area.
-
-// Output:
-#### Calculation Script
-To implement Heron's formula in a Python script, we need to follow these steps:
-1. Calculate the semi-perimeter of the triangle.
-2. Use the semi-perimeter and the lengths of the sides to calculate the area of the triangle.
-
-Let's assume the lengths of the sides of the triangle (a, b, c) are given. We can then use Heron's formula to compute the area.
-
-Here's the Python script to perform this calculation:
+Example structure of the calculation script:
 
 ```python
+# Import necessary modules
 import math
 
-# Define the lengths of the sides of the triangle
-a = 7
-b = 24
-c = 25
+# Define input values
+a = 5
+b = 12
 
-# Calculate the semi-perimeter
-s = (a + b + c) / 2
+# Perform calculation
+result = math.sqrt(a**2 + b**2)
 
-# Calculate the area using Heron's formula
-area = math.sqrt(s * (s - a) * (s - b) * (s - c))
-
-# Print the result
-print(area)
+# Print the final result
+print(round(result, 2))
 ```
 
-JSON Translation:
-```json
-{
-  "calculation_script": "a = 7\nb = 24\nc = 25\n\ns = (a + b + c) / 2\narea = math.sqrt(s * (s - a) * (s - b) * (s - c))\nprint(area)\n"
-}
-```
+Ensure that the calculation script accurately represents the mathematical process described in the question instructions.

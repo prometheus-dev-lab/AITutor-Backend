@@ -1,0 +1,18 @@
+<task>
+Convert the provided question plans into a JSON array. Each question should be an object with the following structure:
+
+{
+  "subject": string,
+  "type": string,
+  "plan": string,
+  "concepts": array of strings
+}
+
+Parse the input carefully, ensuring all fields are correctly extracted. Present the result as a valid JSON array.
+</task>
+
+<input>
+ - **Question Data**: $QUESTION_DATA$
+</input>
+
+Output the JSON array of question objects.

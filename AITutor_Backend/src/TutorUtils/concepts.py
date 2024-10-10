@@ -1,7 +1,7 @@
 import os
 import re
 import threading
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import yaml
 
 from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
@@ -21,10 +21,11 @@ from AITutor_Backend.src.DataUtils.file_utils import save_training_data
 from AITutor_Backend.src.DataUtils.nlp_utils import edit_distance
 
 USE_OPENAI = True
+MIN_EDIT_DISTANCE_SIMILARITY = 4
 DEBUG = bool(os.environ.get("DEBUG", 0))
 
 
-class ConceptDatabase(SQLSerializable):
+class ConceptDatabase(SQLSerializable, JSONSerializable):
     @staticmethod
     def build_dict(lines, current_level=0, index=0):
         """
@@ -166,7 +167,7 @@ class ConceptDatabase(SQLSerializable):
             tutor_plan=tutor_plan,
         )  # TODO: FIX
         self.main_concept = main_concept
-        self.Concepts = []
+        self.concepts = {}
 
     def generate_concept_graph(
         self,
@@ -205,7 +206,7 @@ class ConceptDatabase(SQLSerializable):
         # Recursively add concepts to the graph
         def add_concepts_recursively(c, parent: Concept, cd: ConceptDatabase):
             concept = Concept(c["concept"], parent)
-            cd.Concepts.append(concept)
+            cd.concepts[concept.name] = concept
             if parent is not None:
                 parent.refs.append(concept)
             for c_ref in c["refs"]:
@@ -222,9 +223,9 @@ class ConceptDatabase(SQLSerializable):
     ):
         return (
             "\n".join(
-                [f'\t- "{concept.name}"' for concept in self.Concepts],
+                [f'\t- "{concept.name}"' for concept in self.concepts.values()],
             )
-            if self.Concepts
+            if self.concepts
             else "The Concept List is Empty."
         )
 
@@ -232,7 +233,7 @@ class ConceptDatabase(SQLSerializable):
         self,
     ):
         # Contained parents of the CG
-        origin_nodes = [c for c in self.Concepts if c.parent == None]
+        origin_nodes = [c for c in self.concepts.values() if c.parent == None]
         c_graph = ""
 
         # Recursively generates an indented representation of the CG
@@ -257,11 +258,16 @@ class ConceptDatabase(SQLSerializable):
         if not concept_name:
             return None
 
-        # We use edit distance of 4 as a max such that concepts with almost identical spelling will be identical
+        # Check if theres a direct match
+        if concept_name in self.concepts:
+            return self.concepts[concept_name]
+
+        # Check if we can map using similarity. We use edit distance of 4 as a max such that concepts with almost identical spelling will be identical
         concept = [
             (edit_distance(concept_name.lower(), concept.name.lower()), concept)
-            for concept in self.Concepts
-            if edit_distance(concept_name.lower(), concept.name.lower()) < 4
+            for concept in self.concepts.values()
+            if edit_distance(concept_name.lower(), concept.name.lower())
+            < MIN_EDIT_DISTANCE_SIMILARITY
         ]
 
         if concept:
@@ -281,7 +287,7 @@ class ConceptDatabase(SQLSerializable):
 
         threads = []
         generation_lock = threading.Lock()
-        for concept_ref in self.Concepts:
+        for concept_ref in self.concepts.values():
             thread = threading.Thread(
                 target=self.generate_concept, args=(concept_ref, generation_lock)
             )
@@ -379,6 +385,40 @@ class ConceptDatabase(SQLSerializable):
                 with open("translation_errors.txt", "a") as f:
                     f.write("TRANSLATION_ERROR\n")
 
+    def format_json(self):
+        return {
+            "main_concept": self.main_concept,
+            "tutor_plan": self.tutor_plan,
+            "concepts": {
+                name: concept.format_json() for name, concept in self.concepts.items()
+            },
+        }
+
+    def to_sql(self):
+        return self.format_json()
+
+    @staticmethod
+    def from_sql(data: dict) -> "ConceptDatabase":
+        """creates a ConceptDatabase from sql data.
+
+        Args:
+            data (dict): data from sql
+
+        Returns:
+            ConceptDatabase
+        """
+        cd = ConceptDatabase(data["main_concept"], data["tutor_plan"])
+        for concept_data in data["concepts"].values():
+            concept = Concept.from_dict(concept_data)
+            cd.concepts[concept.name] = concept
+
+        for concept in cd.concepts.values():
+            concept.parent = cd.get_concept(concept.parent)
+            if concept.refs:
+                concept.refs = [cd.get_concept(ref) for ref in concept.refs]
+                concept.refs = [ref for ref in concept.refs if ref is not None]
+        return cd
+
     @staticmethod
     def from_sql(main_concept, tutor_plan, concepts):
         """creates a ConceptDatabase from sql data.
@@ -430,54 +470,38 @@ class ConceptDatabase(SQLSerializable):
 
 
 class Concept(JSONSerializable):
-    def __init__(self, name: str, parent):
+    def __init__(
+        self,
+        name: str,
+        parent: Optional[str],
+        definition: str,
+        latex: str,
+        refs: List[str],
+    ):
         self.name = name
-        self.parent = parent  # TODO: Implement Parent in Database
-        self.definition = ""
-        self.latex = ""
-        self.refs = []
+        self.parent = parent
+        self.definition = definition
+        self.latex = latex
+        self.refs = refs
 
     def __repr__(self) -> str:
-        return f"Concept(name: {self.name}) <{self.__hash__()}>"
+        return f"Concept(name: {self.name}, definition: {(self.definition[:50] + '...') if len(self.definition) > 50 else self.definition})"
 
-    def format_json(
-        self,
-    ):
-        map_concept = lambda c: c.name if isinstance(c, Concept) else c
-
+    def format_json(self):
         return {
             "name": self.name,
-            "definition": " ".join([map_concept(c) for c in self.definition]),
+            "parent": self.parent,
+            "definition": self.definition,
             "latex": self.latex,
+            "refs": self.refs,
         }
 
-    def set_definition(self, definition):
-        self.definition = definition
-
-    def set_latex(self, latex):
-        self.latex = latex
-
     @staticmethod
-    def from_sql(concept_name, parent, concept_def, concept_latex, refs):
-        concept = Concept(concept_name, parent)
-        concept.refs = refs
-        concept.set_definition(concept_def)
-        concept.set_latex(concept_latex)
-        return concept
-
-    def to_sql(
-        self,
-    ) -> Tuple[str, str, str]:
-        """Returns the state of Concept
-
-        Returns:
-            Tuple[str, str, str, str, str]: (concept_name, parent.name, concept_def, concept_latex, refs_str)
-        """
-
-        refs = (  # Concept reference list is stored as a string seperated by the '[SEP]' token
-            "[SEP]".join([ref.name for ref in self.refs if isinstance(ref, Concept)])
-            if self.refs
-            else None
+    def from_dict(data: dict):
+        return Concept(
+            name=data["name"],
+            parent=data["parent"],
+            definition=data["definition"],
+            latex=data["latex"],
+            refs=data["refs"],
         )
-        parent_name = self.parent.name if self.parent else None
-        return (self.name, parent_name, self.definition, self.latex, refs)

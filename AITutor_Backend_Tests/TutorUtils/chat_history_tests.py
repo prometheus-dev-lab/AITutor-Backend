@@ -15,7 +15,7 @@ class ChatHistoryTests(unittest.TestCase):
     def test_adding_user_response(self):
         chat_history = ChatHistory()
         user_prompt = "This is a test user prompt."
-        chat_history.hear(user_prompt)
+        chat_history.read_chat(user_prompt)
         self.assertEqual(
             len(chat_history.chat),
             2,

@@ -167,7 +167,7 @@ class Prompter:
                     [AI_TUTOR_MSG, Message("user", prompt)]
                 )
 
-                llm_output = LLM("gpt-3.5-turbo-16k").chat_completion(messages)
+                llm_output = LLM("gpt-4o-mini").chat_completion(messages)
 
                 action = PromptAction.parse_llm_action(llm_output)
 
@@ -188,7 +188,7 @@ class Prompter:
         Cognitive Process
         """
         # Add msg to chat:
-        self.chat_history.hear(student_input)
+        self.chat_history.read_chat(student_input)
 
         # Construct the notebank:
         plan = self.perform_plan()
