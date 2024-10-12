@@ -17,8 +17,8 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      AWS_ACCESS_KEY_ID: AKIAURHQWD65UMHNHDFV  # Set your AWS Access Key ID here
-      DEFAULT_REGION_NAME: us-east-2  # Set your default region here
+      AWS_ACCESS_KEY_ID: ${{ vars.AWS_ACCESS_KEY_ID }}
+      DEFAULT_REGION_NAME: ${{ vars.DEFAULT_REGION_NAME }}
 
     steps:
     - uses: actions/checkout@v3

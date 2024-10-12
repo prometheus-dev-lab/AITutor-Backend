@@ -9,18 +9,15 @@ WORKDIR /AITUTOR-BACKEND
 
 # Copy the requirements file and install Python dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN python3 -m pip install --break-system-packages -r requirements.txt
+
 
 # Copy the rest of your application's code
 COPY . /AITUTOR-BACKEND
 
-# Make and apply migrations
+# Make migrations
 RUN python3 manage.py makemigrations
 RUN python3 manage.py migrate
 
 # Expose port if your application is a web service
 EXPOSE 8000
-
-# Command to run your application, replace 'app.py' with your entrypoint script
-CMD ["python3", "run.py", "0.0.0.0:8000"]
-

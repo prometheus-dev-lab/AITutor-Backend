@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  aitutor-backend:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/AITUTOR-BACKEND
+    environment:
+      - DEBUG=1
+    command: >
+      sh -c "python3 manage.py migrate &&
+             python3 run.py 0.0.0.0:8000"
+
