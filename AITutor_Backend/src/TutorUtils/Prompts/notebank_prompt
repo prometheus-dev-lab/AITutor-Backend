@@ -1,0 +1,22 @@
+<task>
+Summarize the provided context based on the given objective. Your summary should be concise, clear, and focused on the key points relevant to the objective.
+
+Parameters:
+$CONTEXT$: The data or information to be summarized.
+$SUMMARY_OBJECTIVE$: The specific goal or focus of the summary (e.g., "Summarize this conversation between the AI and the Student" or "Summarize the AI's plan for X").
+
+Guidelines:
+1. Focus on the most important information related to the $SUMMARY_OBJECTIVE$.
+2. Use clear and concise language.
+3. Maintain objectivity in your summary.
+4. Organize the summary in a logical manner.
+5. Keep the summary brief, typically no more than 3-5 sentences unless the context is particularly complex.
+6. Make sure to keep the summary relatively short.
+</task>
+
+<input>
+ - **Context**: $CONTEXT$
+ - **Objective**: $OBJECTIVE$
+</input>
+
+Please provide your summary below:

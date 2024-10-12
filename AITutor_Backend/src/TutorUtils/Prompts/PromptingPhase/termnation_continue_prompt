@@ -1,0 +1,32 @@
+<task>
+Analyze the conversation context and predict whether to continue or terminate the "getting to know you" phase of the tutoring session.
+
+Parameters:
+$CONTEXT$: A summary of the important information gathered from the conversation so far.
+
+Guidelines:
+1. Review the $CONTEXT$ to understand what has been learned about the student's goals and needs.
+2. Determine if the following key points have been adequately addressed:
+   a. What the student wants to learn
+   b. The purpose or motivation for their learning
+   c. Their current level of understanding
+3. Consider the number of questions asked (aim for 3-5 questions before termination).
+4. Evaluate if the conversation is becoming repetitive or if the student seems uninterested.
+
+Output your decision in the following JSON format:
+
+{
+  "action": "continue" or "terminate",
+  "reason": "Brief explanation for your decision"
+}
+
+If "continue" is chosen, also include:
+  "next_question_plan": "Plan what to ask as a next question for the student."
+</task>
+
+<input>
+ - **Context**: $CONTEXT$
+</input>
+
+Please start.
+

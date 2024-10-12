@@ -1,0 +1,24 @@
+Convert the provided Lessons into the following format:
+{
+    "title": "title string",
+    "overview": "lesson overview statement",
+    "objectives": "lesson objectives statement",
+    "concepts": [
+        "concept 1", "concept 2", //...
+    ]
+}
+```
+
+Where you construct a list of lessons like such:
+```json
+{
+  "Lessons": [
+        // ... List of Lessons
+  ]
+}
+```
+
+Lessons:
+$LESSONS$
+
+Ensure your output is in valid JSON Format.

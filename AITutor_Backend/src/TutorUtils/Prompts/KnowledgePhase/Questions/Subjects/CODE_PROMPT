@@ -1,0 +1,33 @@
+## Subject Instructions for CODE
+
+When generating a coding question, include the following components:
+
+1. Instructions:
+   - Provide a clear problem statement.
+   - Specify the function signature (name, parameters, return type).
+   - Describe the input format and constraints.
+   - Explain the expected output.
+   - Include any relevant concepts being tested.
+   - Add a hint or approach suggestion if appropriate.
+
+2. Boilerplate Code:
+   - Include the function definition with correct signature.
+   - Add import statements if necessary.
+   - Provide basic example usage of the function.
+   - Use comments to indicate where the student should write their code.
+
+3. Test Case Script:
+   - Create a variety of test cases covering different scenarios.
+   - Include edge cases and corner cases.
+   - Use assert statements or print comparisons for each test case.
+   - Ensure test cases are comprehensive and validate the solution thoroughly.
+
+Format your output as a JSON object with the following structure:
+
+{
+  "instructions": "Markdown-formatted instructions",
+  "boilerplate": "Python code as a string",
+  "test_case_script": "Python code as a string"
+}
+
+Ensure that the question is challenging, relevant to the specified programming concepts, and suitable for the intended difficulty level.

@@ -16,3 +16,6 @@ python-pptx
 pypdf2
 mwparserfromhell
 wikipedia
+litellm
+transformers
+pyyaml
