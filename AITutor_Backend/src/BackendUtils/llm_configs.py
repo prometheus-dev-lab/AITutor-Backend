@@ -3,16 +3,23 @@ LLM_CONFIG_MANAGER = {
     "planSlides": "gpt-4o",
     "objConvertSlides": "gpt-4o-mini",
     "dialogueSlides": "gpt-4o-mini",
+    
     # Questions:
     "planQuestions": "claude-3-5-sonnet-20240620",
     "objConvertQuestions": "gpt-4o-mini",
+    
     # Tutor Objs:
     "planChapters": "gpt-4o",
     "objConvertChapters": "gpt-4o-mini",
     "planLessons": "gpt-4o",
     "objConvertLessons": "gpt-4o-mini",
+    
     # NoteBank:
     "noteGeneration": "gpt-4o-mini",
+
+    # Concept Graph:
+    "conceptGraph": "claude-3-5-sonnet-20240620",
+    "conceptPrompt": "gpt-4o-mini",
 }
 
 

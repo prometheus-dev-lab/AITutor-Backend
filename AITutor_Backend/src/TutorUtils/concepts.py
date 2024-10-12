@@ -1,7 +1,7 @@
 import os
 import re
 import threading
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
 import yaml
 
 from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
@@ -75,11 +75,11 @@ class ConceptDatabase(SQLSerializable, JSONSerializable):
         WIKI_DELIMITER = "$CONCEPT_WIKI_DATA$"
         CURR_ERROR_DELIMITER = "$CURR_ENV.ERROR$"
 
-        def __init__(self, concept_graph_prompt_file, concept_prompt_file, tutor_plan):
+        def __init__(self, tutor_plan):
             self.__tutor_plan = tutor_plan
             # Initialize Concept Graph Generation prompt
-            self._concept_graph_prompt_template = PromptTemplate.from_file(
-                concept_graph_prompt_file,
+            self._concept_graph_prompt_template = PromptTemplate.from_config(
+                "@conceptGraph",
                 {
                     "tutor_plan": ConceptDatabase.ConceptPrompts.TUTOR_PLANNER_DELIMITER,  # TODO: Optimize by embedding into the prompt
                     "main_concept": ConceptDatabase.ConceptPrompts.CURR_ENV_MAIN_CONCEPT_DELIMITER,
@@ -88,8 +88,8 @@ class ConceptDatabase(SQLSerializable, JSONSerializable):
             """vars: tutor_plan, main_concept"""
 
             # Initialize Concept Generation Prompt
-            self._concept_prompt_template = PromptTemplate.from_file(
-                concept_prompt_file,
+            self._concept_prompt_template = PromptTemplate.from_config(
+                "@conceptPrompt",
                 {
                     # "tutor_plan": self.TUTOR_PLANNER_DELIMITER,
                     "main_concept": self.CURR_ENV_MAIN_CONCEPT_DELIMITER,
@@ -127,7 +127,7 @@ class ConceptDatabase(SQLSerializable, JSONSerializable):
                 [AI_TUTOR_MSG, Message("user", prompt)]
             )
 
-            llm_output = LLM("claude-3-opus-20240229").chat_completion(messages)
+            llm_output = LLM("@conceptPrompt").chat_completion(messages)
 
             return prompt, llm_output
 
@@ -147,7 +147,7 @@ class ConceptDatabase(SQLSerializable, JSONSerializable):
                 [AI_TUTOR_MSG, Message("user", prompt)]
             )
 
-            llm_output = LLM("claude-3-opus-20240229").chat_completion(messages)
+            llm_output = LLM("@conceptGraph").chat_completion(messages)
 
             return prompt, llm_output
 
@@ -162,8 +162,6 @@ class ConceptDatabase(SQLSerializable, JSONSerializable):
         self, main_concept: str, tutor_plan: str = "", max_threads=120
     ):  # TODO: Fix potential Resource lock issue
         self.concept_llm_api = self.ConceptPrompts(
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Concepts/concept_graph_prompt",
-            "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Concepts/concept_prompt",
             tutor_plan=tutor_plan,
         )  # TODO: FIX
         self.main_concept = main_concept
@@ -205,7 +203,7 @@ class ConceptDatabase(SQLSerializable, JSONSerializable):
 
         # Recursively add concepts to the graph
         def add_concepts_recursively(c, parent: Concept, cd: ConceptDatabase):
-            concept = Concept(c["concept"], parent)
+            concept = Concept(name=c["concept"], parent=parent)
             cd.concepts[concept.name] = concept
             if parent is not None:
                 parent.refs.append(concept)
@@ -368,7 +366,7 @@ class ConceptDatabase(SQLSerializable, JSONSerializable):
                 c_latex = parsed_data["Concept"].get("latex_code", None)
                 if c_latex and (c_latex.lower() == "none" or c_latex.lower() == "null"):
                     c_latex = ""
-                concept.set_definition(c_def)
+                concept.definition = c_def
                 concept.latex = c_latex
 
                 assert (
@@ -381,6 +379,7 @@ class ConceptDatabase(SQLSerializable, JSONSerializable):
                 break
 
             except Exception as e:
+                print(e)
                 error_msg = str(e)
                 with open("translation_errors.txt", "a") as f:
                     f.write("TRANSLATION_ERROR\n")
@@ -419,7 +418,7 @@ class ConceptDatabase(SQLSerializable, JSONSerializable):
                 concept.refs = [ref for ref in concept.refs if ref is not None]
         return cd
 
-    @staticmethod
+    @staticmethod # TODO: update concept database model
     def from_sql(main_concept, tutor_plan, concepts):
         """creates a ConceptDatabase from sql data.
 
@@ -473,16 +472,13 @@ class Concept(JSONSerializable):
     def __init__(
         self,
         name: str,
-        parent: Optional[str],
-        definition: str,
-        latex: str,
-        refs: List[str],
+        parent: Optional[str] = None,
     ):
         self.name = name
-        self.parent = parent
-        self.definition = definition
-        self.latex = latex
-        self.refs = refs
+        self.parent: Union[Concept, str, None] = parent
+        self.definition = ""
+        self.latex = ""
+        self.refs = []
 
     def __repr__(self) -> str:
         return f"Concept(name: {self.name}, definition: {(self.definition[:50] + '...') if len(self.definition) > 50 else self.definition})"
@@ -490,18 +486,18 @@ class Concept(JSONSerializable):
     def format_json(self):
         return {
             "name": self.name,
-            "parent": self.parent,
+            "parent": self.parent.name if self.parent is not None else None,
             "definition": self.definition,
             "latex": self.latex,
-            "refs": self.refs,
+            "refs": [r.name for r in self.refs],
         }
 
     @staticmethod
     def from_dict(data: dict):
-        return Concept(
+        n_concept = Concept(
             name=data["name"],
             parent=data["parent"],
-            definition=data["definition"],
-            latex=data["latex"],
-            refs=data["refs"],
         )
+        n_concept.definition = data["definition"]
+        n_concept.latex = data["latex"]
+        n_concept.refs = data["refs"]

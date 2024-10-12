@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from dataclasses import dataclass
 from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
 from AITutor_Backend.src.BackendUtils.env_serialize import EnvSerializable
@@ -75,7 +75,7 @@ class NoteBank(JSONSerializable, EnvSerializable, SQLSerializable):
         self.__notes.append(note)
 
         # Prune the notes if the cache size is too large, we use a logarithmic factor to avoid pruning too often and collecting too many notes
-        if len(self.__notes) > (self.__cache_size + log(base=2, x=self.__cache_size)):
+        if len(self.__notes) > (self.__cache_size + log(self.__cache_size, 2)):
             self.prune_notes()
 
     def prune_notes(self) -> None:
@@ -91,7 +91,8 @@ class NoteBank(JSONSerializable, EnvSerializable, SQLSerializable):
             or f"Generate a summary of the context based on the query: {query}"
         )
         context = self.get_top_k_results(query, k=k)
-        prompt = self._note_prompt.replace(context=context, objective=objective)
+        context_str = "\n".join([n.env_string() for n in context])
+        prompt = self._note_prompt.replace(context=context_str, objective=objective)
         messages = Conversation.from_message_list(
             [AI_TUTOR_MSG, Message(role="user", content=prompt)]
         )
@@ -147,7 +148,7 @@ class NoteBank(JSONSerializable, EnvSerializable, SQLSerializable):
         nb = NoteBank()
         notes_data = json.loads(sql_data)
         for note_data in notes_data:
-            nb.add_note(Note(emitter=note_data["emitter"], data=note_data["data"]))
+            nb.add_note(emitter=note_data["emitter"], data=note_data["data"])
         return nb
 
     def env_string(self) -> str:

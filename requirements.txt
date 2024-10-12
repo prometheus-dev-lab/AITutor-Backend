@@ -18,3 +18,4 @@ mwparserfromhell
 wikipedia
 litellm
 transformers
+pyyaml

@@ -10,6 +10,7 @@ from AITutor_Backend.src.BackendUtils.extractors import JSONExtractor
 from AITutor_Backend.src.BackendUtils.env_serialize import EnvSerializable
 from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
 from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
+from AITutor_Backend.src.BackendUtils.completable import Completable
 from AITutor_Backend.src.DataUtils.file_utils import save_training_data, json_to_string
 from AITutor_Backend.src.TutorUtils.concepts import *
 from AITutor_Backend.src.TutorUtils.notebank import *
@@ -30,13 +31,6 @@ from AITutor_Backend.src.PromptUtils.prompt_utils import (
 DEBUG = bool(os.environ.get("DEBUG", 0))
 
 
-class Completable(object):
-    """Abstract for the is completed method. Used for Data Structures containing interactable items for determining when to allow a user to interact with future items (current item is completed)."""
-
-    def is_completed(self):
-        raise NotImplementedError
-
-
 class TutorObjPrompts:
     # CHAPTERS
     CONCEPT_GRAPH_DELIMITER = "$ENV.CONCEPTS$"
@@ -48,11 +42,7 @@ class TutorObjPrompts:
     CURR_CHAPTER_DELIMITER = "$ENV.CURR_CHAPTER$"
 
     def __init__(
-        self,
-        chapter_plan_prompt_file,
-        chapter_obj_prompt_file,
-        lesson_plan_prompt_file,
-        lesson_obj_prompt_file,
+        self
     ):
         # Load chapter plan prompt
         self._chapter_plan_prompt = PromptTemplate.from_config(
@@ -166,14 +156,14 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
         1. (concept_graph, notebank) -> Generate N Chapters
         2. Convert into N Chapter Objects
         """
-        notebank_state = self.notebank.generate_context_summary(
-            query=f"Creating Chapters for learning about {self.cd.main_concept}",
-            objective=f"Generate a summary of the provided context for creating questions for Chapter {chapter_data}, Lesson: {lesson_data}",
+        notebank_context = self.notebank.generate_context_summary(
+            query=f"Creating Chapters teaching about {self.cd.main_concept}",
+            objective=f"Generate a summary of the provided context for creating a a set of Chapters teaching about {self.cd.main_concept} and its concepts: \n{self.cd.get_concept_graph_str()}",
         )
         while True:
             # Load slides prompt
             slides_prompt = self.llm_prompts.prompt_chapter_plan(
-                self.notebank.env_string(), self.cd.get_concept_graph_str()
+                notebank_context, self.cd.get_concept_graph_str()
             )
 
             # Create msgs
@@ -254,10 +244,14 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
             else " There is no previous Chapter."
         )
         curr_chapter = self.Chapters[chapter_idx].env_string()
+        notebank_context = self.notebank.generate_context_summary(
+            query=f"Creating Lessons for Chapter:\n{curr_chapter}",
+            objective=f"Generate a summary of the provided context for creating a a set of Lessons for Chapter:\n{curr_chapter}",
+        )
         while True:
             # Load lesson prompt
             lessons_prompt = self.llm_prompts.prompt_lesson_plan(
-                self.notebank.env_string(),
+                notebank_context,
                 self.cd.get_concept_graph_str(),
                 prev_chapter,
                 curr_chapter,
@@ -349,6 +343,7 @@ class Chapter(JSONSerializable, SQLSerializable, EnvSerializable):
     def create_chapters_from_JSON(llm_output, cd: ConceptDatabase):
         try:
             chapter_data = JSONExtractor.extract(llm_output)
+            print("[DBG] Chapter Data:", chapter_data)
             chapters = [
                 Chapter(
                     ch["title"],
@@ -364,10 +359,10 @@ class Chapter(JSONSerializable, SQLSerializable, EnvSerializable):
                         if c is not None
                     ],
                 )
-                for ch in chapter_data["Chapters"]
+                for ch in chapter_data.get("Chapters", list(chapter_data.keys())[0])
             ]
             return True, chapters
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, KeyError, TypeError):
             return False, "Could not decode the object"
 
     def env_string(self):

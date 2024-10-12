@@ -8,6 +8,7 @@ from AITutor_Backend.src.BackendUtils.extractors import JSONExtractor
 from AITutor_Backend.src.BackendUtils.env_serialize import EnvSerializable
 from AITutor_Backend.src.BackendUtils.json_serialize import JSONSerializable
 from AITutor_Backend.src.BackendUtils.sql_serialize import SQLSerializable
+from AITutor_Backend.src.BackendUtils.completable import Completable
 from AITutor_Backend.src.DataUtils.file_utils import save_training_data, json_to_string
 from AITutor_Backend.src.BackendUtils.llm_client import LLM
 from AITutor_Backend.src.PromptUtils.prompt_template import PromptTemplate
@@ -93,8 +94,8 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
     def __init__(self, Notebank, ConceptDatabase):
         super(QuestionSuite, self).__init__()
         self.current_obj_idx = -1
-        self.__Notebank = Notebank
-        self.__ConceptDatabase = ConceptDatabase
+        self.Notebank = Notebank
+        self.ConceptDatabase = ConceptDatabase
         self.Questions: List["Question"] = []
         self.num_questions = 0
         self.prompts = QuestionSuite.QuestionPrompts()
@@ -202,9 +203,9 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
 
     def generate_questions(self, chapter_plan: str, lesson_plan: str):
         if DEBUG:
-            print(f"Generating Question Data for {self.__ConceptDatabase.main_concept}")
+            print(f"Generating Question Data for {self.ConceptDatabase.main_concept}")
 
-        context_summary = self.__Notebank.generate_context_summary(
+        context_summary = self.Notebank.generate_context_summary(
             query=f"Creating questions for Chapter {chapter_plan}, Lesson: {lesson_plan}",
             objective=f"Generate a summary of the provided context for creating questions for Chapter {chapter_plan}, Lesson: {lesson_plan}",
         )
@@ -215,7 +216,7 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
             try:
                 # Generate the question plan
                 prompt = self.prompts.main_prompt.replace(
-                    main_concept=self.__ConceptDatabase.main_concept,
+                    main_concept=self.ConceptDatabase.main_concept,
                     context=context_summary,
                     chapter=chapter_plan,
                     lesson_plan=lesson_plan,
@@ -265,7 +266,7 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
                             q_type=Question.Type[q.get("type")],
                             question_data={"plan": q.get("plan")},
                             concepts=[
-                                self.__ConceptDatabase.get_concept(c)
+                                self.ConceptDatabase.get_concept(c)
                                 for c in q.get("concepts")
                             ],
                         )
