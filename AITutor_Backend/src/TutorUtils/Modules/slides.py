@@ -34,24 +34,16 @@ class Slide(JSONSerializable, SQLSerializable, EnvSerializable):
         self,
         title: str,
         content: str,
-        dialogue: str,
-        description: str,
         img_caption: Optional[str],
         ltx_codes: str,
-        purpose: int,
-        purpose_statement: str,
         concepts: List[Concept],
         id: uuid.UUID = None,
     ):
         self.id = id or uuid.uuid4()
         self.title = title
         self.content = content
-        self.dialogue = dialogue
-        self.description = description
         self.img_caption = img_caption
         self.ltx_codes = ltx_codes
-        self.purpose = purpose
-        self.purpose_statement = purpose_statement
         self.concepts = concepts
 
     def format_json(self):
@@ -59,12 +51,8 @@ class Slide(JSONSerializable, SQLSerializable, EnvSerializable):
             "id": str(self.id),
             "title": self.title,
             "content": self.content,
-            "dialogue": self.dialogue,
-            "description": self.description,
             "img_caption": self.img_caption,
             "ltx_codes": self.ltx_codes,
-            "purpose": self.purpose,
-            "purpose_statement": self.purpose_statement,
             "concepts": [concept.name for concept in self.concepts],
         }
 
@@ -74,28 +62,68 @@ class Slide(JSONSerializable, SQLSerializable, EnvSerializable):
         )
         return (
             f"### Slide: {self.title}\n"
-            f"**Description**: {self.description}\n"
             f"**Content**: {self.content}\n"
-            f"**Dialogue**: {self.dialogue}\n"
             f"**Image Caption**: {self.img_caption or 'N/A'}\n"
-            f"**Purpose**: {self.purpose_statement}\n"
             f"**Concepts**:\n{concepts_str}"
         )
 
     @staticmethod
-    def from_dict(data: dict, concept_database):
+    def from_dict(data: dict, concept_database: ConceptDatabase):
         return Slide(
             id=uuid.UUID(data["id"]),
             title=data["title"],
             content=data["content"],
-            dialogue=data["dialogue"],
-            description=data["description"],
             img_caption=data["img_caption"],
             ltx_codes=data["ltx_codes"],
-            purpose=data["purpose"],
-            purpose_statement=data["purpose_statement"],
             concepts=[concept_database.get_concept(c) for c in data["concepts"]],
         )
+    
+    @staticmethod
+    def create_slides_from_JSON(llm_output: str, concept_database: ConceptDatabase):
+        try:
+            slides = []
+            slide_obj_data = JSONExtractor.extract(llm_output)["slides"]
+            for slide in slide_obj_data:
+                # Perform Assertions:
+                assert (
+                    "title" in slide
+                    and "content" in slide
+                    and "concepts" in slide
+                ), "Invalid keys found int slide."
+                assert isinstance(slide["title"], str)
+                assert isinstance(slide["content"], str)
+                assert (
+                    isinstance(slide["concepts"], list)
+                    or slide["concepts"] is None
+                ), "Invalid keys found int slide."
+
+            # Ensure the Concepts is of type list
+            if slide["concepts"] is None:
+                slide["concepts"] = []
+
+            # Retrieve Concepts:
+            slide_concepts = [
+                concept_database.get_concept(c)
+                for c in slide["concepts"]
+            ]
+
+            slides.append(
+                Slide(
+                    slide["title"],
+                    slide["content"],
+                    slide.get("img_caption", None),
+                    "", # LTX Codes
+                    [c for c in slide_concepts if c is not None],
+                )
+            )
+            assert len(slides) > 0, "No slides were created."
+            
+        except Exception as e:
+            print("[ERROR] Failed to create slides from JSON")
+            print(e)
+            return False, None
+        
+        return True, slides
 
 
 class SlidePlanner(JSONSerializable, SQLSerializable):
@@ -241,41 +269,10 @@ class SlidePlanner(JSONSerializable, SQLSerializable):
                     )
 
                     # Extract, Type Check, and Initialize
-                    slides = []
-                    slide_obj_data = JSONExtractor.extract(llm_output)["slides"]
-                    for slide in slide_obj_data:
-                        # Perform Assertions:
-                        assert (
-                            "title" in slide
-                            and "content" in slide
-                            and "concepts" in slide
-                        ), "Invalid keys found int slide."
-                        assert isinstance(slide["title"], str)
-                        assert isinstance(slide["content"], str)
-                        assert (
-                            isinstance(slide["concepts"], list)
-                            or slide["concepts"] is None
-                        )
-
-                        # Ensure the Concepts is of type list
-                        if slide["concepts"] is None:
-                            slide["concepts"] = []
-
-                        # Retrieve Concepts:
-                        slide_concepts = [
-                            self.ConceptDatabase.get_concept(c)
-                            for c in slide["concepts"]
-                        ]
-
-                        slides.append(
-                            Slide(
-                                slide["title"],
-                                slide["content"],
-                                "Null",
-                                slide.get("img_caption", None),
-                                [c for c in slide_concepts if c is not None],
-                            )
-                        )
+                    success, slides = Slide.create_slides_from_JSON(llm_output, self.ConceptDatabase)
+                    assert len(slides) > 1, "Failed to create slides from JSON."
+                    if not success:
+                        continue
 
                     output_dir = "training_data/slides/slide_obj/"
                     save_training_data(output_dir, conversion_prompt, llm_output)

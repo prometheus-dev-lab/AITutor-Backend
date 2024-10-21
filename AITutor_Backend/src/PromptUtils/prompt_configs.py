@@ -7,6 +7,7 @@ CONFIG_MANAGER = {
     # Questions:
     "planQuestions": "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Questions/plan_question_prompt",
     "objConvertQuestions": "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Questions/question_obj_prompt",
+    "questionData": "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/Questions/question_data_prompt",
     
     # Tutor Objs:
     "planChapters": "AITutor_Backend/src/TutorUtils/Prompts/KnowledgePhase/TutorObjs/chapter_plan_prompt",

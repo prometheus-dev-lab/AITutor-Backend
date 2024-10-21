@@ -162,13 +162,13 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
         )
         while True:
             # Load slides prompt
-            slides_prompt = self.llm_prompts.prompt_chapter_plan(
+            chapters_prompt = self.llm_prompts.prompt_chapter_plan(
                 notebank_context, self.cd.get_concept_graph_str()
             )
 
             # Create msgs
             messages = Conversation.from_message_list(
-                [AI_TUTOR_MSG, Message(role="user", content=slides_prompt)]
+                [AI_TUTOR_MSG, Message(role="user", content=chapters_prompt)]
             )
 
             # Get the output

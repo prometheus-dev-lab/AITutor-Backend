@@ -63,13 +63,15 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
                 "@objConvertQuestions",
                 {
                     "question_data": "$QUESTION_DATA$",
-                    "subject_instructions": "$SUBJECT_INSTRUCTIONS$",
-                    "type_instructions": "$TYPE_INSTRUCTIONS$",
                 },
             )
 
             self.question_data_prompt = PromptTemplate.from_config(
-                "@questionData", {"question_data": "$QUESTION_DATA$"}
+                "@questionData", {
+                    "question_data": "$QUESTION_DATA$",
+                    "subject_instructions": "$SUBJECT_INSTRUCTIONS$",
+                    "type_instructions": "$TYPE_INSTRUCTIONS$",
+                },
             )
 
             self.subject_prompts = self.load_subject_prompts()
@@ -178,7 +180,7 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
     ):
         # Generate the question data
         prompt = self.prompts.question_to_obj_prompt.replace(
-            question_data=q_obj.format_json(),
+            question_data=q_obj.env_string(),
             subject_instructions=self.prompts.subject_prompts[q_obj.subject],
             type_instructions=self.prompts.type_prompts[q_obj.type],
         )
@@ -192,6 +194,8 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
 
                 # Extract the question data from the LLM output
                 q_data = JSONExtractor.extract(q_data)
+                if isinstance(q_data, list):
+                    q_data = q_data[0]
 
                 # Check if the question data is valid
                 _ = self.assert_question_data(q_data)
@@ -249,12 +253,10 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
                 ):
                     # Check to make sure that each question object is valid
                     for q in q_objs:
-                        assert isinstance(
-                            q.get("subject"), Question.Subject
-                        ), f"Error, could not find subject on question, check the input: {str(q)}"
-                        assert isinstance(
-                            q.get("type"), Question.Type
-                        ), f"Error, could not find type on question, check the input: {str(q)}"
+                        subjects = [t for t in list(Question.Subject) if t.name.lower() == q.get("subject").lower()]
+                        types = [t for t in list(Question.Type) if t.name.lower() == q.get("type").lower()]
+                        assert len(subjects) == 1, f"Error, could not find subject on question, check the input: {str(q)}"
+                        assert len(types) == 1, f"Error, could not find type on question, check the input: {str(q)}"
                         assert q.get(
                             "concepts"
                         ), f"Error, could not find Concept Database Mappings on Question JSON object. check the input: {str(q)}"
@@ -262,8 +264,8 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
                             "plan"
                         ), f"Error, could not find Plan on Question JSON object. check the input: {str(q)}"
                         q_obj = Question(
-                            q_subject=Question.Subject[q.get("subject")],
-                            q_type=Question.Type[q.get("type")],
+                            q_subject=subjects[0],
+                            q_type=types[0],
                             question_data={"plan": q.get("plan")},
                             concepts=[
                                 self.ConceptDatabase.get_concept(c)
@@ -299,18 +301,15 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
             thread.join()
 
     def env_string(self):
-        map_question = (
-            lambda x: f'**Subject**: {Question.Subject[x.subject].name}, **Type**: {Question.Type[x.type].name}, **Concepts**: {", ".join([f"`{concept.name}`" for concept in x.concepts])}'
-        )
         return (
-            "\n".join(
+            "\n\n".join(
                 [
-                    f"**{str(i)}**: " + map_question(question)
+                    f"**{str(i)}**:\n" + question.env_string()
                     for i, question in enumerate(self.Questions)
                 ]
             )
             if self.Questions
-            else "// There are no Questions created currently."
+            else "There are no Questions created currently."
         )
 
     def to_sql(self):
@@ -403,9 +402,9 @@ class Question(JSONSerializable, SQLSerializable):
         student_response: dict = {},
         completed: bool = False,
     ):
-        self.subject = q_subject
-        self.type = q_type
-        self.data = question_data
+        self.subject: Question.Subject = q_subject
+        self.type: Question.Type = q_type
+        self.data: dict = question_data
         self.concepts = [c for c in concepts if c is not None]
 
         self.student_response = student_response
@@ -416,13 +415,22 @@ class Question(JSONSerializable, SQLSerializable):
 
     def format_json(self):
         return {
-            "subject": int(self.subject),
-            "type": int(self.type),
+            "subject": self.subject.name,
+            "type": self.type.name,
             "data": self.data.copy(),
             "concepts": [c.name for c in self.concepts],
             "student_response": self.student_response,
             "completed": self.completed,
         }
+    
+    def env_string(self):
+        concepts_list = "\n - ".join([f"`{concept.name}`" for concept in self.concepts])
+        return (f"### Question:\n" +
+                f" **Subject**: {self.subject.name}\n" +
+                f" **Type**: {self.type.name}\n" +
+                f" **Concepts**: \n" +
+                f"    - {concepts_list}"
+                )
 
     def evaluate(self, student_response_data: dict) -> dict:
         self.student_response = student_response_data

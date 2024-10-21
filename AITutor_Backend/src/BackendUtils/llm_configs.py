@@ -7,6 +7,7 @@ LLM_CONFIG_MANAGER = {
     # Questions:
     "planQuestions": "claude-3-5-sonnet-20240620",
     "objConvertQuestions": "gpt-4o-mini",
+    "questionData": "claude-3-5-sonnet-20240620",
     
     # Tutor Objs:
     "planChapters": "gpt-4o",
