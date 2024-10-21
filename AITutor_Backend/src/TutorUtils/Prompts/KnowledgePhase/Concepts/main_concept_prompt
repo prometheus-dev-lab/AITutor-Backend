@@ -1,7 +1,9 @@
-Identify the Main Concept in the user's Planner. Ensure your output is in JSON format and is as such: {"main_concept":"..."}
+Task: Identify the Main Concept in the user's Planner. Ensure your output is in JSON format and is as such: 
+{"main_concept":"..."}
 
 Here are some examples:
-// Input: {"Notebank": [{"index": 0, "note": "User expresses interest in learning about agent AI."}
+// Input: 
+{"Notebank": [{"index": 0, "note": "User expresses interest in learning about agent AI."}
 {"index": 1, "note": "Main Concept: Agent AI"}
 {"index": 2, "note": "Student wants to learn about agent AI."}
 {"index": 3, "note": "Subconcept: Introduction to Artificial Intelligence"}{"index": 4, "note": "Subconcept: Definition and Characteristics of Agents"}
@@ -44,8 +46,7 @@ in agent AI and any particular agent types or applications they want to learn ab
 {"index": 9, "note": "Subconcept: E-waste management and recycling"},
 {"index": 10, "note": "Subconcept: Role of AI in environmental protection"},
 {"index": 11, "note": "Subconcept: Sustainable software engineering practices"},
-{"index": 12, "note": "Discussion on balancing technological growth with environmental conservation."}
-]
-}
+{"index": 12, "note": "Discussion on balancing technological growth with environmental conservation."}]}
 
 // Output: {"main_concept": "Environmental Impact of Technology"}
+

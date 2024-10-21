@@ -1,0 +1,41 @@
+## Type Instructions for CALCULATION_ENTRY
+
+When generating a calculation entry question, include the following components:
+
+1. Calculation Script:
+   - Write a Python script that performs the calculation required by the question.
+   - Include necessary import statements (e.g., 'import math').
+   - Use clear variable names that reflect their purpose.
+   - Add comments to explain the steps of the calculation.
+   - End the script with a print statement that outputs the final calculated value.
+
+2. Guidelines:
+   - Ensure the script is executable and produces the correct answer.
+   - Use appropriate data types (int, float) for the calculations.
+   - Handle potential edge cases or invalid inputs if relevant to the question.
+   - Round the final answer to a reasonable number of decimal places if dealing with floating-point numbers.
+
+Format your output as a JSON object with the following structure:
+
+{
+  "calculation_script": "Python code as a string"
+}
+
+Example structure of the calculation script:
+
+```python
+# Import necessary modules
+import math
+
+# Define input values
+a = 5
+b = 12
+
+# Perform calculation
+result = math.sqrt(a**2 + b**2)
+
+# Print the final result
+print(round(result, 2))
+```
+
+Ensure that the calculation script accurately represents the mathematical process described in the question instructions.

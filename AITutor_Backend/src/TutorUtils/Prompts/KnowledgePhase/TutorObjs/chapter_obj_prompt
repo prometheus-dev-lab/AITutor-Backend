@@ -1,0 +1,24 @@
+Convert the provided Chapters into the following format:
+{
+    "title": "title string",
+    "overview": "chapter overview statement",
+    "outcomes": "learning outcomes statement",
+    "concepts": [
+        "concept 1", "concept 2", //...
+    ]
+}
+```
+
+Where you construct a list of chapters like such:
+```json
+{
+  "Chapters": [
+        // ... List of Chapters
+  ]
+}
+```
+
+Chapters:
+$CHAPTERS$
+
+Ensure your output is in valid JSON Format.

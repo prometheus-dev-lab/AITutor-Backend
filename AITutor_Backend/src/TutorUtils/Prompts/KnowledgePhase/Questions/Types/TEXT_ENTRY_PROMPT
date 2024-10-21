@@ -1,0 +1,46 @@
+## Type Requirements
+The question provided has been selected to be a Text Entry Question. Text Entry questions will need a rubric based on the instructions we create.
+
+Based on the instructions you created, you will create a rubric out of 5 possible points to grade a response to the question.
+
+**Requirements:**
+- A Rubric which will grade a students response out of 5 total possible points. 
+
+Here are an example Instructions and the respective Question Generation Process.
+
+#### Example 1.
+**Instructions:** Write a short essay discussing the impact of generative AI on creative industries.
+
+**Rubric (5 Points Total):**
+   - **Understanding of AI (1 point):** Clear demonstration of understanding what generative AI is.
+   - **Impact Analysis (2 points):** Insightful analysis of how generative AI impacts creative industries.
+   - **Examples (1 point):** Inclusion of specific examples where generative AI has been applied.
+   - **Writing Quality (1 point):** Coherence, clarity, and organization of the essay.
+
+#### Example 2.
+**Instructions:** Compare and contrast Breadth-First Search (BFS) and Depth-First Search (DFS) in graph algorithms.
+
+**Rubric (5 Points Total):**
+   - **Basic Definitions (1 point):** Accurate definitions of BFS and DFS.
+   - **Key Differences (2 points):** Detailed explanation of key differences between BFS and DFS.
+   - **Use Cases (1 point):** Discussion of specific use cases or scenarios where each algorithm is preferred.
+   - **Clarity and Organization (1 point):** Clear and well-organized response.
+
+#### Example 3.
+**Instructions:** Explain the main causes of the American Civil War.
+
+**Rubric (5 Points Total):**
+   - **Identification of Causes (2 points):** Correct identification of at least three major causes.
+   - **Historical Accuracy (1 point):** Accuracy of historical facts and events mentioned.
+   - **Analysis (1 point):** Depth of analysis in explaining how each cause contributed to the war.
+   - **Expression and Coherence (1 point):** Clear and coherent writing style.
+
+#### Example 4.
+**Instructions:** Discuss the potential benefits and challenges of autonomous vehicles.
+
+**Rubric (5 Points Total):**
+   - **Benefits (1 point):** Identification and explanation of potential benefits.
+   - **Challenges (1 point):** Identification and explanation of potential challenges.
+   - **Real-world Implications (2 points):** Discussion of the real-world implications of implementing autonomous vehicles.
+   - **Writing Quality (1 point):** Clarity, organization, and coherence of the essay.
+

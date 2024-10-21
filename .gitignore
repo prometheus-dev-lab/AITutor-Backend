@@ -11,3 +11,6 @@ AITutor_Backend/.DS_Store
 *.pkl
 env.py
 myenv.py
+
+# Generated data files
+output_*.txt

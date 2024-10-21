@@ -1,0 +1,27 @@
+## Subject Instructions for MATH
+
+When generating a math question, include the following components:
+
+1. Instructions:
+   - Provide a clear problem statement.
+   - Explain any relevant mathematical concepts or formulas needed to solve the problem.
+   - Include step-by-step guidance if appropriate for the difficulty level.
+   - Use LaTeX code to represent mathematical expressions and equations.
+
+2. LaTeX Representation:
+   - Include a LaTeX representation of the question if applicable.
+   - Ensure all mathematical symbols, variables, and equations are properly formatted in LaTeX.
+   - If the question doesn't require LaTeX, provide a clear text representation.
+
+Format your output as a JSON object with the following structure:
+
+{
+  "instructions": "Markdown-formatted instructions including LaTeX code where necessary",
+  "latex_question": "LaTeX representation of the question (if applicable, otherwise null)"
+}
+
+Guidelines:
+- Use \[ and \] for displayed equations and \( and \) for inline equations in LaTeX.
+- Ensure the LaTeX code is properly escaped within the JSON string.
+- Make sure the question is challenging and relevant to the specified mathematical concepts.
+- Consider the intended difficulty level when formulating the question and instructions.
