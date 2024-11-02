@@ -7,10 +7,17 @@ class JSONExtractor:
     JSON_REGEX = re.compile(r"(\{.*?\}|\[.*?\])", re.DOTALL)
 
     @staticmethod
+    def recover_JSON(data: str) -> str:
+        # Handle all backslashes
+        data = re.sub(r'\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})', r'\\\\', data)
+        
+        return data
+    
+    @staticmethod
     def extract(data: str) -> dict | list | None:
+        data = JSONExtractor.recover_JSON(data)
         # Preprocess the data to remove any bad characters
         data = data.replace("\'s", "s")
-        data = data.replace("\n", "")
 
         # Find the first position of either a '[' or '{'
         start_index = min(
@@ -39,6 +46,7 @@ class JSONExtractor:
             json_obj = json.loads(possible_json_str)
             return json_obj
         except json.JSONDecodeError:
+            print(f"Error, JSON is not valid: {possible_json_str}. Check the data for any bad characters.")
             pass
         
 

@@ -28,24 +28,24 @@ from AITutor_Backend.src.PromptUtils.prompt_utils import (
 )
 
 
-DEBUG = bool(os.environ.get("DEBUG", 0))
+DEBUG: bool = bool(os.environ.get("DEBUG", 0))
 
 
 class TutorObjPrompts:
     # CHAPTERS
-    CONCEPT_GRAPH_DELIMITER = "$ENV.CONCEPTS$"
-    NOTEBANK_STATE_DELIMITER = "$ENV.NOTEBANK_STATE$"
-    MAIN_CONCEPT_DELIMITER = "$ENV.MAIN_CONCEPT$"
+    CONCEPT_GRAPH_DELIMITER: str = "$ENV.CONCEPTS$"
+    NOTEBANK_STATE_DELIMITER: str = "$ENV.NOTEBANK_STATE$"
+    MAIN_CONCEPT_DELIMITER: str = "$ENV.MAIN_CONCEPT$"
 
     ### LESSONS
-    PREV_CHAPTER_DELIMITER = "$ENV.PREV_CHAPTER$"
-    CURR_CHAPTER_DELIMITER = "$ENV.CURR_CHAPTER$"
+    PREV_CHAPTER_DELIMITER: str = "$ENV.PREV_CHAPTER$"
+    CURR_CHAPTER_DELIMITER: str = "$ENV.CURR_CHAPTER$"
 
     def __init__(
         self
     ):
         # Load chapter plan prompt
-        self._chapter_plan_prompt = PromptTemplate.from_config(
+        self._chapter_plan_prompt: PromptTemplate = PromptTemplate.from_config(
             "@planChapters",
             {
                 "notebank": TutorObjPrompts.NOTEBANK_STATE_DELIMITER,
@@ -55,7 +55,7 @@ class TutorObjPrompts:
         """vars: notebank, concept_graph"""
 
         # Load lesson plan prompt
-        self._lesson_plan_prompt = PromptTemplate.from_config(
+        self._lesson_plan_prompt: PromptTemplate = PromptTemplate.from_config(
             "@planLessons",
             {
                 "notebank": TutorObjPrompts.NOTEBANK_STATE_DELIMITER,
@@ -67,7 +67,7 @@ class TutorObjPrompts:
         """vars: notebank, main_concept, prev_chapter, curr_chapter"""
 
         # Load chapter obj prompt
-        self._chapter_obj_prompt = PromptTemplate.from_config(
+        self._chapter_obj_prompt: PromptTemplate = PromptTemplate.from_config(
             "@objConvertChapters",
             {
                 "chapters": "$CHAPTERS$",
@@ -76,7 +76,7 @@ class TutorObjPrompts:
         """vars: chapters"""
 
         # Load chapter obj prompt
-        self._lesson_obj_prompt = PromptTemplate.from_config(
+        self._lesson_obj_prompt: PromptTemplate = PromptTemplate.from_config(
             "@objConvertLessons",
             {
                 "lessons": "$LESSONS$",
@@ -84,8 +84,8 @@ class TutorObjPrompts:
         )
         """vars: lessons"""
 
-    def _load_prompt(self, prompt_template, state_dict):
-        prompt_string = prompt_template
+    def _load_prompt(self, prompt_template: str, state_dict: Dict[str, str]) -> str:
+        prompt_string: str = prompt_template
         # Replace Values in Prompt:
         for k, v in state_dict.items():
             prompt_string = prompt_string.replace(k, v)
@@ -94,8 +94,8 @@ class TutorObjPrompts:
         return prompt_string
 
     def prompt_lesson_plan(
-        self, notebank_state, concept_graph_str, prev_chapter, curr_chapter
-    ):
+        self, notebank_state: str, concept_graph_str: str, prev_chapter: str, curr_chapter: str
+    ) -> str:
         return self._lesson_plan_prompt.replace(
             notebank=notebank_state,
             concepts=concept_graph_str,
@@ -103,7 +103,7 @@ class TutorObjPrompts:
             curr_chapter=curr_chapter,
         )
 
-    def prompt_chapter_plan(self, notebank_state, concept_graph_str):
+    def prompt_chapter_plan(self, notebank_state: str, concept_graph_str: str) -> str:
         return self._chapter_plan_prompt.replace(
             notebank=notebank_state, concepts=concept_graph_str
         )
@@ -114,68 +114,92 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
         self,
         notebank: NoteBank,
         concept_database: ConceptDatabase,
-    ):
+    ) -> None:
         super(TutorObjManager, self).__init__()
-        self.llm_prompts = TutorObjPrompts()
-        self.Chapters = []
-        self.num_chapters = 0
-        self.cd = concept_database
-        self.notebank = notebank
+        self.llm_prompts: TutorObjPrompts = TutorObjPrompts()
+        self.Chapters: List[Chapter] = []
+        self.cd: ConceptDatabase = concept_database
+        self.notebank: NoteBank = notebank
 
-        self.curr_chapter_idx = -1
-        self.curr_lesson_idx = -1
+        self.curr_chapter_idx: int = -1
+        self.curr_lesson_idx: int = -1
 
     @property
-    def initialized(self):
+    def initialized(self) -> bool:
         return self.num_lessons > 0
+    
+    @property
+    def curr_lesson_idx(self) -> int:
+        return self.Chapters[self.curr_chapter_idx].curr_lesson_idx
+    
+    @property
+    def num_chapters(self) -> int:
+        return len(self.Chapters)
+    
+
+    
+    def env_string(self) -> str:
+        main_concept: str = self.cd.main_concept
+        chapters_markdown: str = "\n".join(
+            f"## {chapter.title}\n\n{chapter.overview}\n\n### Outcomes\n{chapter.outcomes}\n\n### Concepts\n- " + "\n- ".join(chapter.concepts)
+            for chapter in self.Chapters
+        )
+        return f"# Main Concept: {main_concept}\n\n{chapters_markdown}"
+    
+    def format_json(self) -> Dict[str, Any]:
+        return {
+            "main_concept": self.cd.main_concept,
+            "chapters": [chapter.format_json() for chapter in self.Chapters],
+            "num_chapters": self.num_chapters,
+            "curr_chapter_idx": self.curr_chapter_idx,
+            "curr_lesson_idx": self.curr_lesson_idx,
+        }
 
     @staticmethod
     def from_sql(
         notebank: NoteBank,
         cd: ConceptDatabase,
-        chapters_data: List[tuple],
+        chapters_data: List[Tuple],
         curr_chapter_idx: int,
         current_lesson_idx: int,
-    ):
+    ) -> None:
         raise NotImplementedError()
 
-    def to_sql(self):
+    def to_sql(self) -> None:
         raise NotImplementedError()
 
-    def format_json(self):
+    def format_json(self) -> Dict[str, Any]:
         return {
             "Chapters": [chapter.format_json() for chapter in self.Chapters],
             "curr_chapter_idx": self.curr_chapter_idx,
             "curr_lesson_idx": self.curr_lesson_idx,
         }
 
-    def generate_chapters(
-        self,
-    ):
+    def generate_chapters(self) -> None:
         """Generation Process: \n
         1. (concept_graph, notebank) -> Generate N Chapters
         2. Convert into N Chapter Objects
         """
-        notebank_context = self.notebank.generate_context_summary(
+        notebank_context: str = self.notebank.generate_context_summary(
             query=f"Creating Chapters teaching about {self.cd.main_concept}",
             objective=f"Generate a summary of the provided context for creating a a set of Chapters teaching about {self.cd.main_concept} and its concepts: \n{self.cd.get_concept_graph_str()}",
         )
         while True:
             # Load slides prompt
-            chapters_prompt = self.llm_prompts.prompt_chapter_plan(
+            chapters_prompt: str = self.llm_prompts.prompt_chapter_plan(
                 notebank_context, self.cd.get_concept_graph_str()
             )
 
             # Create msgs
-            messages = Conversation.from_message_list(
+            messages: Conversation = Conversation.from_message_list(
                 [AI_TUTOR_MSG, Message(role="user", content=chapters_prompt)]
             )
 
             # Get the output
-            llm_output = LLM("@planChapters").chat_completion(messages=messages)
+            llm_output: str = LLM("@planChapters").chat_completion(messages=messages)
 
             # Get the conversion
-            conversion_messages = Conversation.from_message_list(
+            conversion_messages: Conversation = Conversation.from_message_list(
                 [
                     AI_TUTOR_MSG,
                     Message(
@@ -187,7 +211,7 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
                 ]
             )
 
-            slides_json_conversion = LLM("@objConvertChapters").chat_completion(
+            slides_json_conversion: str = LLM("@objConvertChapters").chat_completion(
                 messages=conversion_messages
             )
 
@@ -202,7 +226,7 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
             assert len(chapters) > 0, "No chapters created for this Module."
 
             # Save as training Data:
-            output_dir = "training_data/chapter/chapter_plan/"
+            output_dir: str = "training_data/chapter/chapter_plan/"
             save_training_data(
                 output_dir, json_to_string(messages.format_json()), llm_output
             )
@@ -216,20 +240,18 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
 
             # Populate data:
             self.Chapters = chapters
-            self.num_chapters = len(self.Chapters)
             break
 
-    def initialize_chapter(
-        self,
-        chapter_idx: int,
-    ):
+    def initialize_chapter(self, chapter_idx: int) -> None:
         """Initializes a chapter at index `chapter_idx`"""
         if not 0 <= chapter_idx < self.num_chapters:
             raise IndexError("Cannot Access Out-Of-Bounds Chapters.")
 
         self._generate_modules(chapter_idx)
+        self.curr_chapter_idx = chapter_idx
+        
 
-    def _generate_modules(self, chapter_idx: int):
+    def _generate_modules(self, chapter_idx: int) -> None:
         """
         Generates a Modules from the provided Chapter Context.
 
@@ -238,19 +260,19 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
             2. Convert into Lessons Objects
             3. Generate the content for Lessons[0]
         """
-        prev_chapter = (
+        prev_chapter: str = (
             self.Chapters[chapter_idx - 1].env_string()
             if chapter_idx > 0
             else " There is no previous Chapter."
         )
-        curr_chapter = self.Chapters[chapter_idx].env_string()
-        notebank_context = self.notebank.generate_context_summary(
+        curr_chapter: str = self.Chapters[chapter_idx].env_string()
+        notebank_context: str = self.notebank.generate_context_summary(
             query=f"Creating Lessons for Chapter:\n{curr_chapter}",
             objective=f"Generate a summary of the provided context for creating a a set of Lessons for Chapter:\n{curr_chapter}",
         )
         while True:
             # Load lesson prompt
-            lessons_prompt = self.llm_prompts.prompt_lesson_plan(
+            lessons_prompt: str = self.llm_prompts.prompt_lesson_plan(
                 notebank_context,
                 self.cd.get_concept_graph_str(),
                 prev_chapter,
@@ -258,14 +280,14 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
             )
 
             # Create msgs
-            messages = Conversation.from_message_list(
+            messages: Conversation = Conversation.from_message_list(
                 [AI_TUTOR_MSG, Message(role="user", content=lessons_prompt)]
             )
 
             # Get the output
-            llm_output = LLM("@planLessons").chat_completion(messages=messages)
+            llm_output: str = LLM("@planLessons").chat_completion(messages=messages)
 
-            lessons_conversion_messages = Conversation.from_message_list(
+            lessons_conversion_messages: Conversation = Conversation.from_message_list(
                 [
                     AI_TUTOR_MSG,
                     Message(
@@ -278,7 +300,7 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
             )
 
             # Get the conversion
-            lessons_json_conversion_output = LLM("@objConvertLessons").chat_completion(
+            lessons_json_conversion_output: str = LLM("@objConvertLessons").chat_completion(
                 messages=lessons_conversion_messages
             )
 
@@ -291,7 +313,7 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
                 continue
 
             # Save Output to local directory:
-            output_dir = "training_data/lesson/lesson_plan/"
+            output_dir: str = "training_data/lesson/lesson_plan/"
             save_training_data(
                 output_dir, json_to_string(messages.format_json()), llm_output
             )
@@ -303,12 +325,11 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
                 lessons_json_conversion_output,
             )
 
-            self.Modules = lessons
-            self.num_chapters = len(self.Chapters)
+            self.Modules: List[Lesson] = lessons
 
             # Initialize first lesson, populate chapter's lesson data:
             if len(lessons) > 0:
-                chapter = self.Chapters[chapter_idx]
+                chapter: Chapter = self.Chapters[chapter_idx]
                 lessons[0].initialize_lesson(chapter.env_string())
                 self.Chapters[chapter_idx].curr_lesson_idx = 0
                 self.Chapters[chapter_idx].Lessons = lessons
@@ -324,27 +345,29 @@ class TutorObjManager(SQLSerializable, JSONSerializable, Completable):
 
 
 class Chapter(JSONSerializable, SQLSerializable, EnvSerializable):
-    JSON_REGEX = re.compile(r"\`\`\`json([^\`]*)\`\`\`")
+    JSON_REGEX: re.Pattern = re.compile(r"\`\`\`json([^\`]*)\`\`\`")
 
-    def __init__(self, title, overview, outcomes, concepts):
-        self.Lessons = []  # TODO: Change to be abstract class Module
-        self.num_lessons = 0
-        self.curr_lesson_idx = -1
-        self.title = title
-        self.overview = overview
-        self.outcomes = outcomes
-        self.concepts = concepts
+    def __init__(self, title: str, overview: str, outcomes: Union[str, List[str]], concepts: List[Any]) -> None:
+        self.Lessons: List[Lesson] = []  # TODO: Change to be abstract class Module
+        self.num_lessons: int = 0
+        self.curr_lesson_idx: int = -1
+        self.title: str = title
+        self.overview: str = overview
+        self.outcomes: List[str] = (
+            outcomes if isinstance(outcomes, list) else [outcomes]
+        )
+        self.concepts: List[Any] = concepts
 
     @property
-    def initialized(self):
+    def initialized(self) -> bool:
         return self.num_lessons > 0
 
     @staticmethod
-    def create_chapters_from_JSON(llm_output, cd: ConceptDatabase):
+    def create_chapters_from_JSON(llm_output: str, cd: ConceptDatabase) -> Tuple[bool, List["Chapter"]]:
         try:
-            chapter_data = JSONExtractor.extract(llm_output)
+            chapter_data: Dict[str, Any] = JSONExtractor.extract(llm_output)
             print("[DBG] Chapter Data:", chapter_data)
-            chapters = [
+            chapters: List[Chapter] = [
                 Chapter(
                     ch["title"],
                     ch["overview"],
@@ -365,7 +388,7 @@ class Chapter(JSONSerializable, SQLSerializable, EnvSerializable):
         except (json.JSONDecodeError, KeyError, TypeError):
             return False, "Could not decode the object"
 
-    def env_string(self):
+    def env_string(self) -> str:
         return (
             f"""### Chapter Title: {self.title}"""
             + "\n - **Overview:** {self.overview}\n"
@@ -375,6 +398,16 @@ class Chapter(JSONSerializable, SQLSerializable, EnvSerializable):
             + " - **Concepts:**\n"
             + "\n".join([f"\t - {c.name}" for c in self.concepts])
         )
+    
+    def format_json(self) -> Dict[str, Any]:
+        return {
+            "title": self.title,
+            "overview": self.overview,
+            "outcomes": self.outcomes,
+            "curr_lesson_idx": self.curr_lesson_idx,
+            "lessons": ([l.format_json() for l in self.Lessons] if self.initialized else []),
+            "concepts": [c.name for c in self.concepts],
+        }
 
 
 class Lesson(
@@ -383,25 +416,27 @@ class Lesson(
     EnvSerializable,
 ):
     def __init__(
-        self, title, overview, objectives, concepts, notebank, _ConceptDatabase
-    ):
-        self.Slides = None
-        self.curr_slide_idx = -1
+        self, title: str, overview: str, objectives: Union[str, List[str]], concepts: List[Any], notebank: Any, _ConceptDatabase: ConceptDatabase
+    ) -> None:
+        self.Slides: SlidePlanner = None
+        self.curr_slide_idx: int = -1
 
-        self.Questions = None
-        self.curr_question_idx = -1
+        self.Questions: QuestionSuite = None
+        self.curr_question_idx: int = -1
 
-        self.initialized = False
+        self.initialized: bool = False
 
-        self.title = title
-        self.overview = overview
-        self.objectives = objectives
-        self.concepts = concepts
-        self.initialized = False
+        self.title: str = title
+        self.overview: str = overview
+        self.objectives: List[str] = (
+            objectives if isinstance(objectives, list) else [objectives]
+        )
+        self.concepts: List[Any] = concepts
+        self.initialized: bool = False
         self.notebank = notebank
-        self.cd = _ConceptDatabase
+        self.cd: ConceptDatabase = _ConceptDatabase
 
-    def initialize_lesson(self, chapter_plan: str):
+    def initialize_lesson(self, chapter_plan: str) -> None:
         """
         Generates a Lesson from the provided Chapter Context.
 
@@ -412,15 +447,17 @@ class Lesson(
         import threading
 
         # Generate Slides asynchronously
-        def generate_slides():
+        def generate_slides() -> None:
             self.Slides = SlidePlanner(self.notebank, self.cd)
             self.Slides.generate_slide_deque(chapter_plan, self.env_string())
-
+            self.curr_slide_idx = 0
+            
         # Generate Questions asynchronously
-        def generate_questions():
+        def generate_questions() -> None:
             self.Questions = QuestionSuite(self.notebank, self.cd)
             self.Questions.generate_question_suite(chapter_plan, self.env_string())
-
+            self.curr_question_idx = 0
+        
         # Create and start threads
         slide_thread = threading.Thread(target=generate_slides)
         question_thread = threading.Thread(target=generate_questions)
@@ -432,28 +469,30 @@ class Lesson(
         slide_thread.join()
         question_thread.join()
 
+        # generate_slides()
+        # generate_questions()
+
         self.initialized = True
 
-    def format_json(self):
-        data = {
-            # "slides": self.Slides.env_string(),
+    def format_json(self) -> Dict[str, Any]:
+        data: Dict[str, Any] = {
+            "slides": ([s.format_json() for s in self.Slides.Slides] if self.initialized else []),
             "curr_slide_idx": self.curr_slide_idx,
-            # "questions": self.Questions.env_string(),
+            "questions": ([q.format_json() for q in self.Questions.Questions] if self.initialized else []),
             "curr_question_idx": self.curr_question_idx,
         }
-        data.update(self.Slides.env_string())
 
         return data
 
     @classmethod
     def create_lessons_from_JSON(
-        cls, llm_output, notebank: NoteBank, cd: ConceptDatabase
+        cls, llm_output: str, notebank: NoteBank, cd: ConceptDatabase
     ) -> Tuple[bool, List["Lesson"]]:
         try:
-            lesson_data = JSONExtractor.extract(llm_output)
+            lesson_data: Dict[str, Any] = JSONExtractor.extract(llm_output)
 
             # Try to load each individual lesson
-            lessons = [
+            lessons: List[Lesson] = [
                 cls(
                     l["title"],
                     l["overview"],

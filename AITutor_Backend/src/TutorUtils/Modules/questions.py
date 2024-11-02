@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from enum import IntEnum
 import threading
 from typing import List, Tuple
@@ -117,44 +118,69 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
         ), f"Error, Question Data is not a dictionary: {q_data}"
 
         # Assertions for each question type
-        if q_data.get("type") == Question.Type.CODE_ENTRY:
+        q_type = q_data.get("type").lower()
+        if q_type == Question.Type.CODE_ENTRY.name.lower():
             assert q_data.get(
-                "code_prompt"
-            ), f"Error, Code Entry Question is missing code prompt: {q_data}"
+                "instructions"
+            ) or q_data.get(
+                "question"
+            ), f"Error, Code Entry Question is missing instructions: {q_data}"
+            assert q_data.get(
+                "boilerplate"
+            ), f"Error, Code Entry Question is missing boilerplate: {q_data}"
+            assert q_data.get(
+                "test_case_script"
+            ), f"Error, Code Entry Question is missing test case script: {q_data}"
 
-        elif q_data.get("type") == Question.Type.MULTIPLE_CHOICE:
+        elif q_type == Question.Type.MULTIPLE_CHOICE.name.lower():
             assert q_data.get(
-                "options"
-            ), f"Error, Multiple Choice Question is missing options: {q_data}"
+                "instructions"
+            ) or q_data.get(
+                "question"
+            ), f"Error, Multiple Choice Question is missing instructions or question: {q_data}"
             assert q_data.get(
                 "correct_entry"
             ), f"Error, Multiple Choice Question is missing correct entry: {q_data}"
+            assert q_data.get(
+                q_data["correct_entry"],
+            ), f"Error, Multiple Choice Question is missing correct entry: {q_data}"
 
-        elif q_data.get("type") == Question.Type.CALCULATION_ENTRY:
+        elif q_type == Question.Type.CALCULATION_ENTRY.name.lower():
             assert q_data.get(
                 "calculation_script"
             ), f"Error, Calculation Entry Question is missing correct answer: {q_data}"
 
-        elif q_data.get("type") == Question.Type.TEXT_ENTRY:
+        elif q_type == Question.Type.TEXT_ENTRY.name.lower():
             assert q_data.get(
-                "text_prompt"
-            ), f"Error, Text Entry Question is missing text prompt: {q_data}"
+                "instructions"
+            ) or q_data.get(
+                "question"
+            ), f"Error, Text Entry Question is missing instructions: {q_data}"
+            assert q_data.get(
+                "rubric"
+            ), f"Error, Text Entry Question is missing rubric: {q_data}"
+            # Perform a check to make sure that the rubric is a list of dictionaries
+            assert isinstance(q_data.get("rubric"), list), f"Error, Text Entry Question rubric is not a list: {q_data}"
+            assert all(isinstance(r, dict) for r in q_data.get("rubric")), f"Error, Text Entry Question rubric is not a list of dictionaries: {q_data}"
+            assert all(r.get("criterion") and r.get("description") and r.get("points") for r in q_data.get("rubric")), f"Error, Text Entry Question rubric is missing criterion, description, or points: {q_data}"
 
         else:
             raise ValueError(f"Error, Question Type is not supported: {q_data}")
 
         # Assertions for each subject
-        if q_data.get("subject") == Question.Subject.MATH:
+        q_subject = q_data.get("subject").lower()
+        if q_subject == Question.Subject.MATH.name.lower():
             assert q_data.get(
                 "instructions"
+            ) or q_data.get(
+                "question"
             ), f"Error, Math Question is missing instructions: {q_data}"
-            assert q_data.get(
-                "latex_question"
-            ), f"Error, Math Question is missing LaTeX representation: {q_data}"
 
-        elif q_data.get("subject") == Question.Subject.CODE:
+        elif q_subject == Question.Subject.CODE.name.lower():
             assert q_data.get(
                 "instructions"
+            ) or q_data.get(
+                "question"
             ), f"Error, Code Question is missing instructions: {q_data}"
             assert q_data.get(
                 "boilerplate"
@@ -163,15 +189,25 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
                 "test_case_script"
             ), f"Error, Code Question is missing test case script: {q_data}"
 
-        elif q_data.get("subject") == Question.Subject.LITERATURE:
-            assert q_data.get(
-                "instructions"
-            ), f"Error, Literature Question is missing instructions: {q_data}"
+        elif q_subject == Question.Subject.LITERATURE.name.lower():
+            logging.warning(f"Literature Question is not yet supported: {q_data}")
+            # assert q_data.get(
+            #     "instructions"
+            # ), f"Error, Literature Question is missing instructions: {q_data}"
 
-        elif q_data.get("subject") == Question.Subject.CONCEPTUAL:
+        elif q_subject == Question.Subject.CONCEPTUAL.name.lower():
+            pass
+            # assert q_data.get(
+            #     "instructions"
+            # ), f"Error, Conceptual Question is missing instructions: {q_data}"
+        
+        elif q_subject == Question.Subject.MATH.name.lower():
             assert q_data.get(
                 "instructions"
-            ), f"Error, Conceptual Question is missing instructions: {q_data}"
+            ) or q_data.get(
+                "question"
+            ), f"Error, Math Question is missing instructions: {q_data}"
+            assert "latex_question" in q_data, f"Error, Math Question is missing LaTeX representation: {q_data}"
 
         return True
 
@@ -179,7 +215,7 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
         self, q_obj: "Question", generation_lock: threading.Lock
     ):
         # Generate the question data
-        prompt = self.prompts.question_to_obj_prompt.replace(
+        prompt = self.prompts.question_data_prompt.replace(
             question_data=q_obj.env_string(),
             subject_instructions=self.prompts.subject_prompts[q_obj.subject],
             type_instructions=self.prompts.type_prompts[q_obj.type],
@@ -197,8 +233,22 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
                 if isinstance(q_data, list):
                     q_data = q_data[0]
 
+                if "question" not in q_data:
+                    continue
+
+                q_obj_data = q_data
+                if "additional_data" in q_obj_data:
+                    for k, v in q_obj_data["additional_data"].items():
+                        q_obj_data[k] = v
+                    del q_obj_data["additional_data"]
+
                 # Check if the question data is valid
-                _ = self.assert_question_data(q_data)
+                _ = self.assert_question_data(q_obj_data)
+
+                # Update the question object
+                print(f"[DBG] Question Data: {q_obj_data}")
+                q_obj.data = q_obj_data
+
                 break
             except Exception as e:
                 error = f"Error while creating Question Data: {e}"
@@ -263,6 +313,12 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
                         assert q.get(
                             "plan"
                         ), f"Error, could not find Plan on Question JSON object. check the input: {str(q)}"
+                        
+                        # Filter conditions:
+                        if q.get("subject").lower() == Question.Subject.CODE.name.lower():
+                            if q.get("type").lower() == Question.Type.MULTIPLE_CHOICE.name.lower():
+                                continue
+
                         q_obj = Question(
                             q_subject=subjects[0],
                             q_type=types[0],
@@ -288,17 +344,19 @@ class QuestionSuite(JSONSerializable, SQLSerializable, EnvSerializable, Completa
     def generate_question_suite(self, chapter_plan: str, lesson_plan: str):
         self.generate_questions(chapter_plan, lesson_plan)
         # Create the questions from the question objects in a threaded manner
-        threads = []
+        # threads = []
         generation_lock = threading.Lock()
+        # for q_obj in self.Questions:
+        #     thread = threading.Thread(
+        #         target=self.generate_question_data,
+        #         args=(q_obj, generation_lock),
+        #     )
+        #     threads.append(thread)
+        #     thread.start()
+        # for thread in threads:
+        #     thread.join()
         for q_obj in self.Questions:
-            thread = threading.Thread(
-                target=self.generate_question_data,
-                args=(q_obj, generation_lock),
-            )
-            threads.append(thread)
-            thread.start()
-        for thread in threads:
-            thread.join()
+            self.generate_question_data(q_obj, generation_lock)
 
     def env_string(self):
         return (
@@ -425,7 +483,10 @@ class Question(JSONSerializable, SQLSerializable):
     
     def env_string(self):
         concepts_list = "\n - ".join([f"`{concept.name}`" for concept in self.concepts])
+        data_list = "\n".join([f"**{k}**: {v}" for k, v in self.data.items()])
+
         return (f"### Question:\n" +
+                f"{data_list}\n" +
                 f" **Subject**: {self.subject.name}\n" +
                 f" **Type**: {self.type.name}\n" +
                 f" **Concepts**: \n" +

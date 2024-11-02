@@ -97,25 +97,25 @@ class Slide(JSONSerializable, SQLSerializable, EnvSerializable):
                     or slide["concepts"] is None
                 ), "Invalid keys found int slide."
 
-            # Ensure the Concepts is of type list
-            if slide["concepts"] is None:
-                slide["concepts"] = []
+                # Ensure the Concepts is of type list
+                if slide["concepts"] is None:
+                    slide["concepts"] = []
 
-            # Retrieve Concepts:
-            slide_concepts = [
-                concept_database.get_concept(c)
-                for c in slide["concepts"]
-            ]
+                # Retrieve Concepts:
+                slide_concepts = [
+                    concept_database.get_concept(c)
+                    for c in slide["concepts"]
+                ]
 
-            slides.append(
-                Slide(
-                    slide["title"],
-                    slide["content"],
-                    slide.get("img_caption", None),
-                    "", # LTX Codes
-                    [c for c in slide_concepts if c is not None],
+                slides.append(
+                    Slide(
+                        slide["title"],
+                        slide["content"],
+                        slide.get("img_caption", None),
+                        "", # LTX Codes
+                        [c for c in slide_concepts if c is not None],
+                    )
                 )
-            )
             assert len(slides) > 0, "No slides were created."
             
         except Exception as e:
