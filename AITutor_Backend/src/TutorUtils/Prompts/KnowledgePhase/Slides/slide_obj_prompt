@@ -1,0 +1,25 @@
+<task>
+You will be provided a list of slides and provide the equivalent json object containing the following fields:
+
+```json
+{
+    "slides": [
+        {
+            "title": "insert title...",
+            "content": "insert slide content...",
+            "img_caption": "insert image caption...",
+            "concepts": ["insert concept list..."]
+        },
+        ...
+    ]
+}
+```
+</task>
+
+<input>
+
+### Slides:
+$SLIDES$
+</input>
+
+Ensure your output is in valid JSON Format.

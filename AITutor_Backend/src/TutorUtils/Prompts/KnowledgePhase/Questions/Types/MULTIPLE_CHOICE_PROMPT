@@ -1,0 +1,71 @@
+## Type Instructions for Multiple Choice Questions
+The question provided has been selected to be a Multiple Choice Question. Multiple Choice questions will need potential answers, and also a correct entry. Multiple Choice questions should be as tricky and academic as possible. 
+
+Based on the instructions you created, you will create the Entries, and then indicate the correct entry as well.
+
+**Requirements:**
+ - Multiple Choice 'Entries'
+ - Correct Entry 
+
+#### Example 1: Generative AI and Creative Industries
+**Instructions:** Select the best Answer. Which of the following best represents the impact of generative AI on creative industries?
+
+**Entry 1:** Generative AI primarily reduces job opportunities in creative industries by automating creative tasks.
+**Entry 2:** Generative AI has no significant impact on creative industries as it cannot replicate human creativity.
+**Entry 3:** Generative AI complements human creativity, leading to new forms of art and enhancing the creative process.
+**Entry 4:** Generative AI is mainly used for data analysis, not affecting the creative aspects of industries.
+**Correct Entry:** Entry 3
+
+**JSON Translation:**
+```json
+{
+ "instructions": "Which of the following best represents the impact of generative AI on creative industries?",
+ "entry_1": "Generative AI primarily reduces job opportunities in creative industries by automating creative tasks.",
+ "entry_2": "Generative AI has no significant impact on creative industries as it cannot replicate human creativity.",
+ "entry_3": "Generative AI complements human creativity, leading to new forms of art and enhancing the creative process.",
+ "entry_4": "Generative AI is mainly used for data analysis, not affecting the creative aspects of industries.",
+ "correct_entry": "entry_3"
+}
+```
+
+#### Example 2: BFS and DFS in Graph Algorithms
+**Instructions:** Which of the following statements accurately contrasts Breadth-First Search (BFS) and Depth-First Search (DFS) in graph algorithms?
+
+**Entry 1:** Both BFS and DFS are equally efficient in memory usage.
+**Entry 2:** BFS is generally used for finding the shortest path, while DFS is used for topological sorting.
+**Entry 3:** DFS is faster than BFS in all scenarios.
+**Entry 4:** BFS and DFS cannot be used in directed graphs.
+**Correct Entry:** Entry 2
+
+**JSON Translation:**
+```json
+{
+ "instructions": "Which of the following statements accurately contrasts Breadth-First Search (BFS) and Depth-First Search (DFS) in graph algorithms?",
+ "entry_1": "Both BFS and DFS are equally efficient in memory usage.",
+ "entry_2": "BFS is generally used for finding the shortest path, while DFS is used for topological sorting.",
+ "entry_3": "DFS is faster than BFS in all scenarios.",
+ "entry_4": "BFS and DFS cannot be used in directed graphs.",
+ "correct_entry": "entry_2"
+}
+```
+
+#### Example 3: Causes of the American Civil War
+**Instructions:** Which set of factors best represents the main causes of the American Civil War?
+
+**Entry 1:** Economic disparities, cultural differences, and technological advancements.
+**Entry 2:** State rights, slavery, and economic conflicts between the North and South.
+**Entry 3:** International politics, industrial revolution, and religious conflicts.
+**Entry 4:** Territorial expansion, colonialism, and the abolition movement.
+**Correct Entry:** Entry 2
+
+**JSON Translation:**
+```json
+{
+ "instructions": "Which set of factors best represents the main causes of the American Civil War?",
+ "entry_1": "Economic disparities, cultural differences, and technological advancements.",
+ "entry_2": "State rights, slavery, and economic conflicts between the North and South.",
+ "entry_3": "International politics, industrial revolution, and religious conflicts.",
+ "entry_4": "Territorial expansion, colonialism, and the abolition movement.",
+ "correct_entry": "entry_2"
+}
+```

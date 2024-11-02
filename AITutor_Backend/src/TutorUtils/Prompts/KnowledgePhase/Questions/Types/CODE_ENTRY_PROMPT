@@ -1,0 +1,23 @@
+Example 1: Reverse a String
+
+```json
+{
+  "instructions": "### Reverse a String\n\nWrite a function `reverse_string` that takes a string as input and returns the reverse of that string.\n\n#### Function Signature:\n```python\ndef reverse_string(s: str) -> str:\n```\n\n#### Input:\n- `s`: A string to be reversed.\n\n#### Output:\n- Return the reversed string.\n\n#### Constraints:\n- The input string will contain only ASCII characters.\n- The maximum length of the input string is 10^5.\n\n#### Hint:\nConsider using string slicing or a two-pointer approach.",
+
+  "boilerplate": "def reverse_string(s: str) -> str:\n    # Your code here\n    pass\n\n# Example usage\nprint(reverse_string('hello'))  # Should output: 'olleh'",
+
+  "test_case_script": "def test_reverse_string():\n    assert reverse_string('hello') == 'olleh'\n    assert reverse_string('python') == 'nohtyp'\n    assert reverse_string('') == ''\n    assert reverse_string('a') == 'a'\n    assert reverse_string('racecar') == 'racecar'\n    print('All test cases passed!')\n\ntest_reverse_string()"
+}
+```
+
+Example 2: Find the Maximum Subarray Sum
+
+```json
+{
+  "instructions": "### Maximum Subarray Sum\n\nWrite a function `max_subarray_sum` that finds the contiguous subarray within a one-dimensional array of integers which has the largest sum, and return that sum.\n\n#### Function Signature:\n```python\ndef max_subarray_sum(nums: List[int]) -> int:\n```\n\n#### Input:\n- `nums`: A list of integers.\n\n#### Output:\n- Return an integer representing the maximum subarray sum.\n\n#### Constraints:\n- The length of the array will be between 1 and 10^5.\n- Each element will be an integer between -10^4 and 10^4.\n\n#### Hint:\nConsider using Kadane's algorithm for an efficient solution.",
+
+  "boilerplate": "from typing import List\n\ndef max_subarray_sum(nums: List[int]) -> int:\n    # Your code here\n    pass\n\n# Example usage\nprint(max_subarray_sum([-2, 1, -3, 4, -1, 2, 1, -5, 4]))  # Should output: 6",
+
+  "test_case_script": "def test_max_subarray_sum():\n    assert max_subarray_sum([-2, 1, -3, 4, -1, 2, 1, -5, 4]) == 6\n    assert max_subarray_sum([1]) == 1\n    assert max_subarray_sum([-1]) == -1\n    assert max_subarray_sum([-2, -1]) == -1\n    assert max_subarray_sum([5, 4, -1, 7, 8]) == 23\n    print('All test cases passed!')\n\ntest_max_subarray_sum()"
+}
+```

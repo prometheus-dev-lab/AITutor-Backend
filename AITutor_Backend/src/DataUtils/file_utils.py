@@ -1,16 +1,20 @@
-from pptx import Presentation
-import glob
-import os
 import datetime
+import glob
+import json
+import os
+
+from pptx import Presentation
+
 
 def read_pptx_file(pptx_file):
-    content = ''
+    content = ""
     prs = Presentation(pptx_file)
     for slide in prs.slides:
         for shape in slide.shapes:
             if hasattr(shape, "text"):
-                content+=shape.text+'\n'
+                content += shape.text + "\n"
     return content
+
 
 def save_training_data(output_dir, input_data, output_data):
     if not os.path.exists(output_dir):
@@ -18,7 +22,12 @@ def save_training_data(output_dir, input_data, output_data):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{output_dir}output_{timestamp}.txt"
     try:
-        with open(filename, 'w') as file:
+        with open(filename, "w") as file:
             file.write(input_data + "\n[->LLM_OUTPUT]\n" + output_data)
     except IOError as e:
         print(f"Error writing training data to file: {e}")
+
+
+def json_to_string(json_data, indent=4):
+    """format any dict or JSON data to a string with default indent of 4"""
+    return json.dumps(json_data, indent=indent)

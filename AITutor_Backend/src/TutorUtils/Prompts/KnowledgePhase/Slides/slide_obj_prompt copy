@@ -1,0 +1,79 @@
+<task>
+You will be provided a list of slides and provide the equivalent json object containing the following fields:
+
+```json
+{
+    "slides": [
+        {
+            "title": "insert title...",
+            "content": "insert slide content...",
+            "img_caption": "insert image caption...",
+            "concepts": ["insert concept list..."]
+        },
+        ...
+    ]
+}
+```
+</task>
+
+<example>
+    <input>
+        ### Slide 1
+        - **Title**: "Intro to Slide Generation"
+        - **Content**: 
+            - by TeachaBull
+        - **Img Caption**: "generating slides for presentations using AI"
+        - **Concepts:**: []
+
+        ### Slide 2
+        - **Title**: "How to Generate a Slide"
+        - **Content**: 
+            - a Slide consists of a title, content image caption, and a list of concepts
+            - you must define each of these in order to generate a slide, where the image caption is optional
+            - 
+        - **Img Caption**: "microsoft powerpoint example of a presentation slide"
+        - **Concepts:**: "content generation", "presentations"
+
+        ### Slide 3
+        - **Title**: "Conclusion"
+        - **Content**: 
+            - We will now take this time to answer any lingering questions
+        - **Img Caption**: None
+        - **Concepts:**: []
+    </input>
+    <output>
+    ```json
+    {
+       "slides": [
+            {
+                "title": "Intro to Slide Generation",
+                "content": "by TeachaBull",
+                "img_caption": "generating slides for presentations using AI",
+                "concepts": []
+            },
+            {
+                "title": "How to Generate a Slide",
+                "content": "A Slide consists of a title, content, image caption, and a list of concepts. You must define each of these in order to generate a slide, where the image caption is optional.",
+                "img_caption": "microsoft powerpoint example of a presentation slide",
+                "concepts": ["content generation", "presentations"]
+            },
+            {
+                "title": "Conclusion",
+                "content": "We will now take this time to answer any lingering questions",
+                "img_caption": null,
+                "concepts": []
+            }
+        ] 
+    }
+    ```
+
+    </output>
+</example>
+
+Now, please start completing the task on the provided input.
+
+<input>
+$SLIDE_DATA$
+</input>
+
+<output>

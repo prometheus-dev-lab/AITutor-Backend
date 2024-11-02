@@ -1,0 +1,32 @@
+<task>
+Generate a response to the user's chat based on the given context and objective. Your response should be in JSON format with a "message" field and a "suggested_response" field. The message should be the response to the user's chat and the suggested response should be a list of potential ways the user might answer our message.
+
+Parameters:
+$CONTEXT$: The background information or previous conversation to base your response on.
+$OBJECTIVE$: The specific goal for this conversation (e.g., "Learn the student's intent for this tutoring session" or "Discuss the current lecturing content").
+
+Guidelines:
+1. Analyze the $CONTEXT$ to understand the conversation history and student's needs.
+2. Focus on achieving the $OBJECTIVE$ in your response.
+3. Ask the user a question if something needs further clarification. 
+4. Keep the tone friendly, professional, and encouraging.
+5. Limit your response to 2-3 sentences or a single question, unless more detail is necessary.
+6. Ensure your response moves the conversation towards the given objective.
+
+Output your response in the following JSON format:
+
+```
+{
+  "message": "Your response here",
+  "suggested_response": ["A potential response from the user", "an alternative response from the user", "maybe a third suggested response"]
+}
+```
+
+</task>
+
+<input>
+ - **Context**: $CONTEXT$
+ - **Objective**: $OBJECTIVE$ 
+</input>
+
+Please start.
